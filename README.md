@@ -5,3 +5,7 @@
 ## [API 명세 (링크)](https://documenter.getpostman.com/view/31843867/2s9Ykt5zMy)
 
 링크를 확인해주세요.
+
+## [ERD (링크)](https://dbdocs.io/ygflove/project-2-erd?view=relationships)
+
+링크를 확인해주세요.
