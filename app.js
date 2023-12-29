@@ -16,7 +16,7 @@ function logReqMiddleware(req, _, next) {
   next();
 }
 
-function rootPathHandler(_, res, _) {
+function rootPathHandler(_, res) {
   res.redirect(process.env.API_DOCS_URL);
 }
 
