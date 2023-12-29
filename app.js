@@ -1,9 +1,6 @@
 const express = require("express");
-const debug = require("debug");
 const logger = require("./src/logger");
 const routes = require("./src/routes");
-
-logger.init(debug);
 
 const app = express();
 
