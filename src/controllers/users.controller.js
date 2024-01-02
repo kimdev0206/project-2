@@ -22,4 +22,27 @@ module.exports = class UsersController {
       });
     }
   };
+
+  logIn = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const param = { email, password };
+      const token = await this.service.logIn(param);
+
+      res.cookie("token", token, {
+        maxAge: 15 * 60 * 1000, // 15m
+        httpOnly: true,
+      });
+      res.json({
+        message: "로그인 되었습니다.",
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
 };
