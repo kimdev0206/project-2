@@ -1,6 +1,6 @@
 module.exports = class UsersService {
-  static bufLen = 16; // NOTE: 최종 hashedPassword 길이가 아닙니다.
-  static iterations = 100_000;
+  bufLen = 16; // NOTE: 최종 hashedPassword 길이가 아닙니다.
+  iterations = 100_000;
 
   constructor({ repository, randomBytes, pbkdf2, StatusCodes, jwt }) {
     this.repository = repository;
@@ -19,12 +19,12 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const salt = await this.randomBytes(UsersService.bufLen).toString("base64");
+    const salt = await this.randomBytes(this.bufLen).toString("base64");
     const hashedPassword = await this.pbkdf2(
       param.password,
       salt,
-      UsersService.iterations,
-      UsersService.bufLen,
+      this.iterations,
+      this.bufLen,
       "sha512"
     ).toString("base64");
 
@@ -46,8 +46,8 @@ module.exports = class UsersService {
     const hashedPassword = await this.pbkdf2(
       param.password,
       row.salt,
-      UsersService.iterations,
-      UsersService.bufLen,
+      this.iterations,
+      this.bufLen,
       "sha512"
     ).toString("base64");
 
@@ -79,12 +79,12 @@ module.exports = class UsersService {
   };
 
   putResetPassword = async (param) => {
-    const salt = await this.randomBytes(UsersService.bufLen).toString("base64");
+    const salt = await this.randomBytes(this.bufLen).toString("base64");
     const hashedPassword = await this.pbkdf2(
       param.password,
       salt,
-      UsersService.iterations,
-      UsersService.bufLen,
+      this.iterations,
+      this.bufLen,
       "sha512"
     ).toString("base64");
 
