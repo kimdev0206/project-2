@@ -7,6 +7,7 @@ const app = express();
 app.use(logReqMiddleware, express.urlencoded({ extended: false }));
 app.get("/", rootPathHandler);
 app.use("/api/users", routes.usersRoute);
+app.use("/api/books", routes.booksRoute);
 
 function logReqMiddleware(req, _, next) {
   logger.info(`${req.method} ${req.url}`);
