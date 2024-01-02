@@ -43,4 +43,24 @@ module.exports = class UsersService {
     );
     return Promise.resolve(token);
   };
+
+  postResetPassword = async (param) => {
+    const [row] = await this.repository.selectUser(param.email);
+
+    if (!row) {
+      const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
+      err.statusCode = this.StatusCodes.BAD_REQUEST;
+      return Promise.reject(err);
+    }
+  };
+
+  putResetPassword = async (param) => {
+    const { affectedRows } = await this.repository.updateUserPassword(param);
+
+    if (!affectedRows) {
+      const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
+      err.statusCode = this.StatusCodes.BAD_REQUEST;
+      return Promise.reject(err);
+    }
+  };
 };

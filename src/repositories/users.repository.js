@@ -29,4 +29,20 @@ module.exports = class UsersRepository {
 
     await pool.query(query, Object.values(param));
   };
+
+  updateUserPassword = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      UPDATE
+        users
+      SET
+        password = ?
+      WHERE
+        email = ?;
+    `;
+
+    const values = [param.password, param.email];
+    const [result] = await pool.query(query, values);
+    return result;
+  };
 };

@@ -45,4 +45,43 @@ module.exports = class UsersController {
       });
     }
   };
+
+  postResetPassword = async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      const param = { email };
+      await this.service.postResetPassword(param);
+
+      res.json({
+        message: "비밀번호 초기화가 요청 되었습니다.",
+        email,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  putResetPassword = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const param = { email, password };
+      await this.service.putResetPassword(param);
+
+      res.json({
+        message: "비밀번호 초기화 되었습니다.",
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
 };
