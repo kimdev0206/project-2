@@ -4,8 +4,10 @@ module.exports = class BooksService {
     this.StatusCodes = StatusCodes;
   }
 
-  getBooks = async () => {
-    const rows = await this.repository.selectBooks();
+  getBooks = async (param) => {
+    const rows = param.categoryID
+      ? await this.repository.selectBooksByCategoryID(param)
+      : await this.repository.selectBooks();
 
     if (!rows.length) {
       const err = new Error("도서가 존재하지 않습니다.");
