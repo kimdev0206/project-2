@@ -7,7 +7,9 @@ module.exports = class UsersRepository {
     const pool = await this.database.pool;
     const query = `
       SELECT
-        *
+        email,
+        hashed_password AS hashedPassword,
+        salt
       FROM
         users
       WHERE
@@ -22,12 +24,13 @@ module.exports = class UsersRepository {
     const pool = await this.database.pool;
     const query = `
       INSERT INTO users
-        (email, password)
+        (email, hashed_password, salt)
       VALUES
-        (?, ?);
+        (?, ?, ?);
     `;
 
-    await pool.query(query, Object.values(param));
+    const values = [param.email, param.hashedPassword, param.salt];
+    await pool.query(query, values);
   };
 
   updateUserPassword = async (param) => {
@@ -36,12 +39,13 @@ module.exports = class UsersRepository {
       UPDATE
         users
       SET
-        password = ?
+        hashed_password = ?,
+        salt = ?
       WHERE
         email = ?;
     `;
 
-    const values = [param.password, param.email];
+    const values = [param.hashedPassword, param.salt, param.email];
     const [result] = await pool.query(query, values);
     return result;
   };

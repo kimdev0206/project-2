@@ -1,6 +1,11 @@
 module.exports = class UsersService {
-  constructor({ repository, StatusCodes, jwt }) {
+  static bufLen = 16; // NOTE: 최종 hashedPassword 길이가 아닙니다.
+  static iterations = 100_000;
+
+  constructor({ repository, randomBytes, pbkdf2, StatusCodes, jwt }) {
     this.repository = repository;
+    this.randomBytes = randomBytes;
+    this.pbkdf2 = pbkdf2;
     this.StatusCodes = StatusCodes;
     this.jwt = jwt;
   }
@@ -14,7 +19,18 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
+    const salt = await this.randomBytes(UsersService.bufLen).toString("base64");
+    const hashedPassword = await this.pbkdf2(
+      param.password,
+      salt,
+      UsersService.iterations,
+      UsersService.bufLen,
+      "sha512"
+    ).toString("base64");
+
+    param = { ...param, salt, hashedPassword };
     await this.repository.insertUser(param);
+
     return Promise.resolve(this.StatusCodes.CREATED);
   };
 
@@ -27,7 +43,15 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    if (row.password !== param.password) {
+    const hashedPassword = await this.pbkdf2(
+      param.password,
+      row.salt,
+      UsersService.iterations,
+      UsersService.bufLen,
+      "sha512"
+    ).toString("base64");
+
+    if (row.hashedPassword !== hashedPassword) {
       const err = new Error("요청하신 password 가 일치하지 않습니다.");
       err.statusCode = this.StatusCodes.UNAUTHORIZED;
       return Promise.reject(err);
@@ -55,6 +79,16 @@ module.exports = class UsersService {
   };
 
   putResetPassword = async (param) => {
+    const salt = await this.randomBytes(UsersService.bufLen).toString("base64");
+    const hashedPassword = await this.pbkdf2(
+      param.password,
+      salt,
+      UsersService.iterations,
+      UsersService.bufLen,
+      "sha512"
+    ).toString("base64");
+
+    param = { ...param, salt, hashedPassword };
     const { affectedRows } = await this.repository.updateUserPassword(param);
 
     if (!affectedRows) {
