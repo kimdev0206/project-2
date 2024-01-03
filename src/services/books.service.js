@@ -5,9 +5,7 @@ module.exports = class BooksService {
   }
 
   getBooks = async (param) => {
-    const rows = param.categoryID
-      ? await this.repository.selectBooksByCategoryID(param)
-      : await this.repository.selectBooks();
+    const rows = await this.repository.selectBooks(param);
 
     if (!rows.length) {
       const err = new Error("도서가 존재하지 않습니다.");

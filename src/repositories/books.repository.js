@@ -3,9 +3,9 @@ module.exports = class BooksRepository {
     this.database = database;
   }
 
-  selectBooks = async () => {
+  selectBooks = async (param) => {
     const pool = await this.database.pool;
-    const query = `
+    let query = `
       SELECT
         id,
         title,        
@@ -20,36 +20,32 @@ module.exports = class BooksRepository {
         price,
         pub_date AS pubDate
       FROM
-        books;
-    `;
-
-    const [result] = await pool.query(query);
-    return result;
-  };
-
-  selectBooksByCategoryID = async (param) => {
-    const pool = await this.database.pool;
-    const query = `
-      SELECT
-        id,
-        title,
-        img_id AS imgID,
-        form,
-        isbn,
-        summary,
-        detail,
-        author,
-        pages,
-        contents,
-        price,
-        pub_date AS pubDate
-      FROM
         books
-      WHERE
-        category_id = ?;
     `;
 
-    const values = [param.categoryID];
+    let conditions = [];
+    let values = [];
+
+    if (param.categoryID) {
+      conditions.push("category_id = ?");
+      values.push(param.categoryID);
+    }
+
+    if (param.isNew) {
+      conditions.push(
+        "pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
+      );
+    }
+
+    if (conditions.length) {
+      query += `
+        WHERE
+          ${conditions.join(" AND ")}
+      `;
+    }
+
+    query += ";";
+
     const [result] = await pool.query(query, values);
     return result;
   };
