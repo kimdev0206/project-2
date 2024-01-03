@@ -44,6 +44,9 @@ module.exports = class BooksRepository {
       `;
     }
 
+    query += "LIMIT ? OFFSET ?";
+    values.push(param.limit, param.offset);
+
     query += ";";
 
     const [result] = await pool.query(query, values);

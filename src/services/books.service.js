@@ -5,6 +5,7 @@ module.exports = class BooksService {
   }
 
   getBooks = async (param) => {
+    param.offset = (param.page - 1) * param.limit;
     const rows = await this.repository.selectBooks(param);
 
     if (!rows.length) {
