@@ -8,8 +8,7 @@ module.exports = class BooksRepository {
     const query = `
       SELECT
         id,
-        title,
-        category_id AS categoryID,
+        title,        
         img_id AS imgID,
         form,
         isbn,
@@ -34,7 +33,6 @@ module.exports = class BooksRepository {
       SELECT
         id,
         title,
-        category_id AS categoryID,
         img_id AS imgID,
         form,
         isbn,
@@ -60,23 +58,26 @@ module.exports = class BooksRepository {
     const pool = await this.database.pool;
     const query = `
       SELECT
-        id,
-        title,
-        category_id AS categoryID,
-        img_id AS imgID,
-        form,
-        isbn,
-        summary,
-        detail,
-        author,
-        pages,
-        contents,
-        price,
-        pub_date AS pubDate
+        b.id,
+        b.title,
+        c.category,
+        b.img_id AS imgID,
+        b.form,
+        b.isbn,
+        b.summary,
+        b.detail,
+        b.author,
+        b.pages,
+        b.contents,
+        b.price,
+        b.pub_date AS pubDate
       FROM
-        books
+        categories AS c
+      LEFT JOIN
+        books AS b
+        ON c.id = b.category_id
       WHERE
-        id = ?;
+        b.id = ?;
     `;
 
     const values = [param.bookID];
