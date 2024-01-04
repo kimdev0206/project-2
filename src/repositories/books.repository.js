@@ -8,15 +8,10 @@ module.exports = class BooksRepository {
     let query = `
       SELECT
         id,
-        title,        
+        title,
         img_id AS imgID,
-        form,
-        isbn,
         summary,
-        detail,
         author,
-        pages,
-        contents,
         price,
         pub_date AS pubDate
       FROM
