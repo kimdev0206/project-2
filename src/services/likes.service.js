@@ -9,4 +9,10 @@ module.exports = class LikesService {
 
     return Promise.resolve(this.StatusCodes.CREATED);
   };
+
+  deleteLike = async (param) => {
+    await this.repository.deleteLike(param);
+
+    return Promise.resolve(this.StatusCodes.NO_CONTENT);
+  };
 };

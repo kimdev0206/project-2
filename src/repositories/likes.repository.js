@@ -15,4 +15,19 @@ module.exports = class LikesRepository {
     const values = [param.userID, param.bookID];
     await pool.query(query, values);
   };
+
+  deleteLike = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      DELETE
+      FROM
+        likes
+      WHERE
+        user_id = ?
+        AND liked_book_id = ?;
+    `;
+
+    const values = [param.userID, param.bookID];
+    await pool.query(query, values);
+  };
 };
