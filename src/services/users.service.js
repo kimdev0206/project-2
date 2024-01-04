@@ -58,7 +58,10 @@ module.exports = class UsersService {
     }
 
     const token = this.jwt.sign(
-      { email: row.email },
+      {
+        userID: row.id,
+        email: row.email,
+      },
       process.env.JWT_PRIVATE_KEY,
       {
         expiresIn: "15m",
