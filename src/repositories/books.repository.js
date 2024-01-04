@@ -6,29 +6,37 @@ module.exports = class BooksRepository {
   selectBooks = async (param) => {
     const pool = await this.database.pool;
     let query = `
-      SELECT
-        id,
-        title,
-        img_id AS imgID,
-        summary,
-        author,
-        price,
-        pub_date AS pubDate
+      SELECT        
+        b.id,
+        b.title,
+        b.img_id AS imgID,
+        b.summary,
+        b.author,
+        b.price,
+        (
+          SELECT
+            COUNT(*)
+          FROM
+            likes
+          WHERE
+            liked_book_id = b.id
+        ) AS likes,
+        b.pub_date AS pubDate
       FROM
-        books
+        books AS b
     `;
 
     let conditions = [];
     let values = [];
 
     if (param.categoryID) {
-      conditions.push("category_id = ?");
+      conditions.push("b.category_id = ?");
       values.push(param.categoryID);
     }
 
     if (param.isNew) {
       conditions.push(
-        "pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
+        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
       );
     }
 
@@ -64,6 +72,14 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
+        (
+          SELECT
+            COUNT(*)
+          FROM
+            likes
+          WHERE
+            liked_book_id = b.id
+        ) AS likes,
         b.pub_date AS pubDate
       FROM
         categories AS c
