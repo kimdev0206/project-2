@@ -30,9 +30,10 @@ module.exports = class BooksController {
 
   getBook = async (req, res) => {
     try {
+      const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
-      const param = { bookID };
+      const param = { userID, bookID };
       const data = await this.service.getBook(param);
 
       res.json({

@@ -80,6 +80,17 @@ module.exports = class BooksRepository {
           WHERE
             liked_book_id = b.id
         ) AS likes,
+        (
+          SELECT EXISTS (
+            SELECT
+              *
+            FROM
+              likes
+            WHERE
+              user_id = ?
+              AND liked_book_id = b.id
+          )
+        ) AS liked,
         b.pub_date AS pubDate
       FROM
         categories AS c
@@ -90,7 +101,7 @@ module.exports = class BooksRepository {
         b.id = ?;
     `;
 
-    const values = [param.bookID];
+    const values = [param.userID, param.bookID];
     const [result] = await pool.query(query, values);
     return result;
   };
