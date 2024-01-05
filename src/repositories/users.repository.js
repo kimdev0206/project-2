@@ -7,6 +7,7 @@ module.exports = class UsersRepository {
     const pool = await this.database.pool;
     const query = `
       SELECT
+        id,
         email,
         hashed_password AS hashedPassword,
         salt
