@@ -28,6 +28,7 @@ module.exports = class LikesRepository {
     `;
 
     const values = [param.userID, param.bookID];
-    await pool.query(query, values);
+    const [result] = await pool.query(query, values);
+    return result;
   };
 };
