@@ -19,13 +19,15 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const salt = await this.randomBytes(this.bufLen).toString("base64");
-    const hashedPassword = await this.pbkdf2(
-      param.password,
-      salt,
-      this.iterations,
-      this.bufLen,
-      "sha512"
+    const salt = (await this.randomBytes(this.bufLen)).toString("base64");
+    const hashedPassword = (
+      await this.pbkdf2(
+        param.password,
+        salt,
+        this.iterations,
+        this.bufLen,
+        "sha512"
+      )
     ).toString("base64");
 
     param = { ...param, salt, hashedPassword };
@@ -43,12 +45,14 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const hashedPassword = await this.pbkdf2(
-      param.password,
-      row.salt,
-      this.iterations,
-      this.bufLen,
-      "sha512"
+    const hashedPassword = (
+      await this.pbkdf2(
+        param.password,
+        row.salt,
+        this.iterations,
+        this.bufLen,
+        "sha512"
+      )
     ).toString("base64");
 
     if (row.hashedPassword !== hashedPassword) {
@@ -58,7 +62,10 @@ module.exports = class UsersService {
     }
 
     const token = this.jwt.sign(
-      { email: row.email },
+      {
+        userID: row.id,
+        email: row.email,
+      },
       process.env.JWT_PRIVATE_KEY,
       {
         expiresIn: "15m",
@@ -79,13 +86,15 @@ module.exports = class UsersService {
   };
 
   putResetPassword = async (param) => {
-    const salt = await this.randomBytes(this.bufLen).toString("base64");
-    const hashedPassword = await this.pbkdf2(
-      param.password,
-      salt,
-      this.iterations,
-      this.bufLen,
-      "sha512"
+    const salt = (await this.randomBytes(this.bufLen)).toString("base64");
+    const hashedPassword = (
+      await this.pbkdf2(
+        param.password,
+        salt,
+        this.iterations,
+        this.bufLen,
+        "sha512"
+      )
     ).toString("base64");
 
     param = { ...param, salt, hashedPassword };

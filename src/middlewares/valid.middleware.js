@@ -7,6 +7,25 @@ module.exports = class ValidMiddleware {
     this.validator = validator;
   }
 
+  validateAuth = async (req, _, next) => {
+    const validations = [
+      this.validator
+        .body("email")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isEmail()
+        .withMessage("유효하지 않은 이메일 형식 입니다."),
+
+      this.validator.body("password").notEmpty().withMessage(this.emptyMessage),
+    ];
+
+    for (let validation of validations) {
+      await validation.run(req);
+    }
+
+    next();
+  };
+
   validateGetBooks = async (req, _, next) => {
     const validations = [
       this.validator
