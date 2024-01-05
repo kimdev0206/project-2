@@ -19,13 +19,15 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const salt = await this.randomBytes(this.bufLen).toString("base64");
-    const hashedPassword = await this.pbkdf2(
-      param.password,
-      salt,
-      this.iterations,
-      this.bufLen,
-      "sha512"
+    const salt = (await this.randomBytes(this.bufLen)).toString("base64");
+    const hashedPassword = (
+      await this.pbkdf2(
+        param.password,
+        salt,
+        this.iterations,
+        this.bufLen,
+        "sha512"
+      )
     ).toString("base64");
 
     param = { ...param, salt, hashedPassword };
@@ -43,12 +45,14 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const hashedPassword = await this.pbkdf2(
-      param.password,
-      row.salt,
-      this.iterations,
-      this.bufLen,
-      "sha512"
+    const hashedPassword = (
+      await this.pbkdf2(
+        param.password,
+        row.salt,
+        this.iterations,
+        this.bufLen,
+        "sha512"
+      )
     ).toString("base64");
 
     if (row.hashedPassword !== hashedPassword) {
@@ -79,13 +83,15 @@ module.exports = class UsersService {
   };
 
   putResetPassword = async (param) => {
-    const salt = await this.randomBytes(this.bufLen).toString("base64");
-    const hashedPassword = await this.pbkdf2(
-      param.password,
-      salt,
-      this.iterations,
-      this.bufLen,
-      "sha512"
+    const salt = (await this.randomBytes(this.bufLen)).toString("base64");
+    const hashedPassword = (
+      await this.pbkdf2(
+        param.password,
+        salt,
+        this.iterations,
+        this.bufLen,
+        "sha512"
+      )
     ).toString("base64");
 
     param = { ...param, salt, hashedPassword };
