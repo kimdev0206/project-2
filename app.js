@@ -4,7 +4,7 @@ const routes = require("./src/routes");
 
 const app = express();
 
-app.use(logReqMiddleware);
+app.use(logReqMiddleware, express.urlencoded({ extended: false }));
 app.get("/", rootPathHandler);
 app.use("/api/users", routes.usersRoute);
 

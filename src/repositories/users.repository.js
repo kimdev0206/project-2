@@ -3,21 +3,50 @@ module.exports = class UsersRepository {
     this.database = database;
   }
 
-  // TODO: 인자. 쿼리.
-  selectUser = async () => {
-    const pool = await this.database;
-    const query = `      
+  selectUser = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      SELECT
+        email,
+        hashed_password AS hashedPassword,
+        salt
+      FROM
+        users
+      WHERE
+        email = ?;
     `;
 
-    const [result] = await pool.query(query);
+    const [result] = await pool.query(query, [param]);
     return result;
   };
 
-  insertUser = async () => {
-    const pool = await this.database;
+  insertUser = async (param) => {
+    const pool = await this.database.pool;
     const query = `
+      INSERT INTO users
+        (email, hashed_password, salt)
+      VALUES
+        (?, ?, ?);
     `;
 
-    await pool.query(query);
+    const values = [param.email, param.hashedPassword, param.salt];
+    await pool.query(query, values);
+  };
+
+  updateUserPassword = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      UPDATE
+        users
+      SET
+        hashed_password = ?,
+        salt = ?
+      WHERE
+        email = ?;
+    `;
+
+    const values = [param.hashedPassword, param.salt, param.email];
+    const [result] = await pool.query(query, values);
+    return result;
   };
 };

@@ -1,7 +1,7 @@
 const UsersRepository = require("./users.repository");
-// TODO: database.js import
+const database = require("../database");
 
-const usersRepository = new UsersRepository();
+const usersRepository = new UsersRepository(database);
 
 module.exports = {
   usersRepository,

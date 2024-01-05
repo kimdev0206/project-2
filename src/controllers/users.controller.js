@@ -4,18 +4,82 @@ module.exports = class UsersController {
     this.logger = logger;
   }
 
-  // TODO: 요청값
-  signUp = async (_, res) => {
+  signUp = async (req, res) => {
     try {
-      await this.service.signUp();
+      const { email, password } = req.body;
 
-      res.json({
-        message: "회원가입 되었습니다",
+      const param = { email, password };
+      const statusCode = await this.service.signUp(param);
+
+      res.status(statusCode).json({
+        message: "회원가입 되었습니다.",
       });
     } catch (err) {
       this.logger.err(err.message);
 
-      res.status(err.status).json({
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  logIn = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const param = { email, password };
+      const token = await this.service.logIn(param);
+
+      res.cookie("token", token, {
+        maxAge: 15 * 60 * 1000, // 15m
+        httpOnly: true,
+      });
+      res.json({
+        message: "로그인 되었습니다.",
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  postResetPassword = async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      const param = { email };
+      await this.service.postResetPassword(param);
+
+      res.json({
+        message: "비밀번호 초기화가 요청 되었습니다.",
+        email,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  putResetPassword = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const param = { email, password };
+      await this.service.putResetPassword(param);
+
+      res.json({
+        message: "비밀번호 초기화 되었습니다.",
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
         message: err.message,
       });
     }
