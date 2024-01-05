@@ -12,6 +12,7 @@ app.use(
 );
 app.get("/", rootPathHandler);
 app.use("/api/users", routes.usersRoute);
+app.use("/api/books", routes.booksRoute);
 app.use("/api/likes", routes.likesRoute);
 
 function logReqMiddleware(req, _, next) {

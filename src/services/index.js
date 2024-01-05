@@ -2,10 +2,15 @@ const crypto = require("node:crypto");
 const util = require("node:util");
 const { StatusCodes } = require("http-status-codes");
 const jwt = require("jsonwebtoken");
+const BooksService = require("./books.service");
 const LikesService = require("./likes.service");
 const UsersService = require("./users.service");
 const repositories = require("../repositories");
 
+const booksService = new BooksService({
+  repository: repositories.booksRepository,
+  StatusCodes,
+});
 const likesService = new LikesService({
   repository: repositories.likesRepository,
   StatusCodes,
@@ -19,6 +24,7 @@ const usersService = new UsersService({
 });
 
 module.exports = {
+  booksService,
   likesService,
   usersService,
 };
