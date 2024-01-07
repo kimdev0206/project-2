@@ -32,4 +32,20 @@ module.exports = class CartBooksService {
 
     return Promise.resolve(this.StatusCodes.NO_CONTENT);
   };
+
+  getCartBooks = async (param) => {
+    const rows = await this.repository.selectCartBooks(param);
+
+    if (!rows.length) {
+      const err = new Error(
+        param?.bookIDs?.length
+          ? "요청하신 모든 bookIDs 의 도서가 장바구니에 담겨 있지 않습니다."
+          : "장바구니에 도서가 담겨 있지 않습니다."
+      );
+      err.statusCode = this.StatusCodes.NOT_FOUND;
+      return Promise.reject(err);
+    }
+
+    return Promise.resolve(rows);
+  };
 };

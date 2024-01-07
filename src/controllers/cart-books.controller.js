@@ -42,4 +42,24 @@ module.exports = class CartBooksController {
       });
     }
   };
+
+  getCartBooks = async (req, res) => {
+    try {
+      const { userID } = req.decodedToken;
+      const { bookIDs } = req.body;
+
+      const param = { userID, bookIDs };
+      const data = await this.service.getCartBooks(param);
+
+      res.json({
+        data,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
 };
