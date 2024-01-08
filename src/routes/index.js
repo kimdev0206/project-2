@@ -14,7 +14,7 @@ const booksRoute = makeBooksRoute({
 const cartBooksRoute = makeCartBooksRoute({
   express,
   controller: controllers.cartBooksController,
-  middleware: middlewares.authMiddleware,
+  middlewares,
 });
 const likesRoute = makeLikesRoute({
   express,

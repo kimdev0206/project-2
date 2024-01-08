@@ -55,6 +55,32 @@ module.exports = class ValidMiddleware {
     next();
   };
 
+  validatePostCartBook = async (req, _, next) => {
+    const validation = this.validator
+      .body("count")
+      .notEmpty()
+      .withMessage(this.emptyMessage)
+      .isNumeric()
+      .withMessage(this.invalidTypeMessage);
+
+    await validation.run(req);
+
+    next();
+  };
+
+  validateGetSelectedCartBooks = async (req, _, next) => {
+    const validation = this.validator
+      .body("bookIDs")
+      .isArray({ min: 1 })
+      .withMessage(this.emptyMessage)
+      .isNumeric()
+      .withMessage(this.invalidTypeMessage);
+
+    await validation.run(req);
+
+    next();
+  };
+
   errHandler = (req, res, next) => {
     const errors = this.validator.validationResult(req);
 
