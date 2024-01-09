@@ -5,8 +5,10 @@ const jwt = require("jsonwebtoken");
 const BooksService = require("./books.service");
 const CartBooksService = require("./cart-books.service");
 const LikesService = require("./likes.service");
+const OrdersService = require("./orders.service");
 const UsersService = require("./users.service");
 const repositories = require("../repositories");
+const database = require("../database");
 
 const booksService = new BooksService({
   repository: repositories.booksRepository,
@@ -20,6 +22,11 @@ const likesService = new LikesService({
   repository: repositories.likesRepository,
   StatusCodes,
 });
+const ordersService = new OrdersService({
+  repository: repositories.ordersRepository,
+  StatusCodes,
+  database,
+});
 const usersService = new UsersService({
   repository: repositories.usersRepository,
   randomBytes: util.promisify(crypto.randomBytes),
@@ -32,5 +39,6 @@ module.exports = {
   booksService,
   cartBooksService,
   likesService,
+  ordersService,
   usersService,
 };

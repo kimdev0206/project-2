@@ -2,6 +2,7 @@ const express = require("express");
 const makeBooksRoute = require("./books.route");
 const makeCartBooksRoute = require("./cart-books.route");
 const makeLikesRoute = require("./likes.route");
+const makeOrdersRoute = require("./orders.route");
 const makeUsersRoute = require("./users.route");
 const controllers = require("../controllers");
 const middlewares = require("../middlewares");
@@ -21,6 +22,11 @@ const likesRoute = makeLikesRoute({
   controller: controllers.likesController,
   middleware: middlewares.authMiddleware,
 });
+const ordersRoute = makeOrdersRoute({
+  express,
+  controller: controllers.ordersController,
+  middlewares,
+});
 const usersRoute = makeUsersRoute({
   express,
   controller: controllers.usersController,
@@ -31,5 +37,6 @@ module.exports = {
   booksRoute,
   cartBooksRoute,
   likesRoute,
+  ordersRoute,
   usersRoute,
 };

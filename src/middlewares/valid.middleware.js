@@ -81,6 +81,74 @@ module.exports = class ValidMiddleware {
     next();
   };
 
+  validatePostOrder = async (req, _, next) => {
+    const validations = [
+      this.validator
+        .body("mainBookTitle")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isString()
+        .withMessage(this.invalidTypeMessage),
+
+      this.validator
+        .body("books")
+        .isArray({ min: 1 })
+        .withMessage(this.emptyMessage),
+      this.validator
+        .body("books.*.bookID")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isNumeric()
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .body("books.*.count")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isNumeric()
+        .withMessage(this.invalidTypeMessage),
+
+      this.validator.body("delivery").isObject().withMessage(this.emptyMessage),
+      this.validator
+        .body("delivery.address")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isString()
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .body("delivery.receiver")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isString()
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .body("delivery.contact")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isMobilePhone()
+        .withMessage(this.invalidTypeMessage),
+
+      this.validator
+        .body("totalCount")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isNumeric()
+        .withMessage(this.invalidTypeMessage),
+
+      this.validator
+        .body("totalPrice")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isNumeric()
+        .withMessage(this.invalidTypeMessage),
+    ];
+
+    for (let validation of validations) {
+      await validation.run(req);
+    }
+
+    next();
+  };
+
   errHandler = (req, res, next) => {
     const errors = this.validator.validationResult(req);
 
