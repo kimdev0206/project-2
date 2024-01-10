@@ -1,30 +1,35 @@
 module.exports = class OrdersService {
-  constructor({ repository, StatusCodes, database }) {
-    this.repository = repository;
+  constructor({ repositories, StatusCodes, database }) {
+    this.repositories = repositories;
     this.StatusCodes = StatusCodes;
     this.database = database;
   }
 
   postOrder = async (param) => {
+    const { cartBooksRepository, ordersRepository } = this.repositories;
     const pool = await this.database.pool;
     const conn = await pool.getConnection();
 
     try {
       await conn.beginTransaction();
 
-      const { insertId: deliveryID } = await this.repository.insertDelivery(
+      const { insertId: deliveryID } = await ordersRepository.insertDelivery(
         conn,
         param.delivery
       );
 
       param.deliveryID = deliveryID;
-      const { insertId: orderID } = await this.repository.insertOrder(
+      const { insertId: orderID } = await ordersRepository.insertOrder(
         conn,
         param
       );
 
       param.orderID = orderID;
-      await this.repository.insertOrderedBook(conn, param);
+      param.bookIDs = param.books.map((book) => book.bookID);
+      await Promise.allSettled([
+        ordersRepository.insertOrderedBook(conn, param),
+        cartBooksRepository.deleteCartBooks(conn, param),
+      ]);
 
       await conn.commit();
 

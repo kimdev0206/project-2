@@ -23,7 +23,7 @@ const likesService = new LikesService({
   StatusCodes,
 });
 const ordersService = new OrdersService({
-  repository: repositories.ordersRepository,
+  repositories,
   StatusCodes,
   database,
 });
