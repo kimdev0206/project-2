@@ -41,7 +41,7 @@ module.exports = class OrdersRepository {
     return result;
   };
 
-  insertOrderedBook = async (conn, param) => {
+  insertOrderedBooks = async (conn, param) => {
     const query = `
       INSERT INTO ordered_books
         (order_id, book_id, count)

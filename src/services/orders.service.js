@@ -27,7 +27,7 @@ module.exports = class OrdersService {
       param.orderID = orderID;
       param.bookIDs = param.books.map((book) => book.bookID);
       await Promise.allSettled([
-        ordersRepository.insertOrderedBook(conn, param),
+        ordersRepository.insertOrderedBooks(conn, param),
         cartBooksRepository.deleteCartBooks(conn, param),
       ]);
 
