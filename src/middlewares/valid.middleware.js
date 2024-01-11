@@ -98,13 +98,13 @@ module.exports = class ValidMiddleware {
         .body("books.*.bookID")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt()
         .withMessage(this.invalidTypeMessage),
       this.validator
         .body("books.*.count")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt()
         .withMessage(this.invalidTypeMessage),
 
       this.validator.body("delivery").isObject().withMessage(this.emptyMessage),
@@ -131,14 +131,14 @@ module.exports = class ValidMiddleware {
         .body("totalCount")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt()
         .withMessage(this.invalidTypeMessage),
 
       this.validator
         .body("totalPrice")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt()
         .withMessage(this.invalidTypeMessage),
     ];
 
