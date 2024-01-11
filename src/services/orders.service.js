@@ -40,7 +40,7 @@ module.exports = class OrdersService {
       err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
     } finally {
-      conn.release();
+      await conn.release();
     }
   };
 
