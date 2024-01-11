@@ -9,6 +9,8 @@ module.exports = function ({ express, controller, middlewares }) {
     validMiddleware.errHandler,
     controller.postOrder
   );
+  router.get("/", controller.getOrders);
+  router.get("/:orderID", controller.getOrdersDetail);
 
   return router;
 };

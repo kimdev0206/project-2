@@ -54,4 +54,53 @@ module.exports = class OrdersRepository {
     ];
     await conn.query(query, values);
   };
+
+  selectOrders = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      SELECT
+        o.id AS orderID,
+        d.address,
+        d.receiver,
+        d.contact,
+        o.main_book_title AS mainBookTitle,
+        o.total_price AS totalPrice,
+        o.total_count AS totalCount,
+        o.created_at AS createdAt
+      FROM
+        deliveries AS d
+      LEFT JOIN
+        orders AS o
+        ON d.id = o.delivery_id
+      WHERE
+        o.user_id = ?;
+    `;
+
+    const values = [param.userID];
+    const [result] = await pool.query(query, values);
+    return result;
+  };
+
+  selectOrdersDetail = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      SELECT
+        b.id AS bookID,
+        b.title,
+        b.author,
+        b.price,
+        ob.count
+      FROM
+        books AS b
+      LEFT JOIN
+        ordered_books AS ob
+        ON b.id = ob.book_id
+      WHERE
+        ob.order_id = ?;
+    `;
+
+    const values = [param.orderID];
+    const [result] = await pool.query(query, values);
+    return result;
+  };
 };

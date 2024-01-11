@@ -43,4 +43,30 @@ module.exports = class OrdersService {
       conn.release();
     }
   };
+
+  getOrders = async (param) => {
+    const { ordersRepository } = this.repositories;
+    const rows = await ordersRepository.selectOrders(param);
+
+    if (!rows.length) {
+      const err = new Error("주문이 존재하지 않습니다.");
+      err.statusCode = this.StatusCodes.NOT_FOUND;
+      return Promise.reject(err);
+    }
+
+    return Promise.resolve(rows);
+  };
+
+  getOrdersDetail = async (param) => {
+    const { ordersRepository } = this.repositories;
+    const rows = await ordersRepository.selectOrdersDetail(param);
+
+    if (!rows.length) {
+      const err = new Error("요청하신 orderID 의 주문이 존재하지 않습니다.");
+      err.statusCode = this.StatusCodes.NOT_FOUND;
+      return Promise.reject(err);
+    }
+
+    return Promise.resolve(rows);
+  };
 };

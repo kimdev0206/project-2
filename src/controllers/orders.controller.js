@@ -31,4 +31,42 @@ module.exports = class OrdersController {
       });
     }
   };
+
+  getOrders = async (req, res) => {
+    try {
+      const { userID } = req.decodedToken;
+
+      const param = { userID };
+      const data = await this.service.getOrders(param);
+
+      res.json({
+        data,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  getOrdersDetail = async (req, res) => {
+    try {
+      const { orderID } = req.params;
+
+      const param = { orderID };
+      const data = await this.service.getOrdersDetail(param);
+
+      res.json({
+        data,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
 };
