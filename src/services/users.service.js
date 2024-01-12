@@ -61,27 +61,32 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const accessToken = this.jwt.sign(
-      { userID: row.id },
-      process.env.JWT_PRIVATE_KEY,
-      {
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-        issuer: "Yongki Kim",
-      }
-    );
-    const refreshToken = this.jwt.sign(
-      { userID: row.id },
-      process.env.JWT_PRIVATE_KEY,
-      {
-        expiresIn: "15d",
-        issuer: "Yongki Kim",
-      }
-    );
+    try {
+      const accessToken = this.jwt.sign(
+        { userID: row.id },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+          issuer: "Yongki Kim",
+        }
+      );
+      const refreshToken = this.jwt.sign(
+        { userID: row.id },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: "15d",
+          issuer: "Yongki Kim",
+        }
+      );
 
-    return Promise.resolve({
-      accessToken,
-      refreshToken,
-    });
+      return Promise.resolve({
+        accessToken,
+        refreshToken,
+      });
+    } catch (err) {
+      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
+      return Promise.reject(err);
+    }
   };
 
   postResetPassword = async (param) => {

@@ -14,10 +14,20 @@ module.exports = class AuthMiddleware {
 
     if (req.cookies.accessToken) {
       const { accessToken } = req.cookies;
-      req.decodedToken = this.jwt.verify(
-        accessToken,
-        process.env.JWT_PRIVATE_KEY
-      );
+
+      try {
+        req.decodedToken = this.jwt.verify(
+          accessToken,
+          process.env.JWT_PRIVATE_KEY
+        );
+      } catch (err) {
+        if (err instanceof this.jwt.JsonWebTokenError) {
+          this.logger.err(err.message);
+          return res.status(this.StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: err.message,
+          });
+        }
+      }
 
       return next();
     }
@@ -34,18 +44,28 @@ module.exports = class AuthMiddleware {
             "토큰이 만료되었습니다. 로그인 API 를 통해 토큰을 재발급 받으세요.",
         });
       }
+      if (err instanceof this.jwt.JsonWebTokenError) {
+        this.logger.err(err.message);
+        return res.status(this.StatusCodes.INTERNAL_SERVER_ERROR).json({
+          message: err.message,
+        });
+      }
+    }
 
+    const { userID } = decodedToken;
+    let accessToken;
+
+    try {
+      accessToken = this.jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY, {
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+        issuer: "Yongki Kim",
+      });
+    } catch (err) {
       this.logger.err(err.message);
       return res.status(this.StatusCodes.INTERNAL_SERVER_ERROR).json({
         message: err.message,
       });
     }
-
-    const { userID } = decodedToken;
-    const accessToken = this.jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY, {
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-      issuer: "Yongki Kim",
-    });
 
     req.decodedToken = decodedToken;
     res.cookie("accessToken", accessToken, {
