@@ -31,7 +31,7 @@ module.exports = class UsersController {
       const { accessToken, refreshToken } = await this.service.logIn(param);
 
       res.cookie("accessToken", accessToken, {
-        maxAge: 15 * 60 * 1000, // 15m
+        maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
         httpOnly: true,
       });
       res.header("Authorization", refreshToken);

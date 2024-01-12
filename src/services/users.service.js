@@ -65,7 +65,7 @@ module.exports = class UsersService {
       { userID: row.id },
       process.env.JWT_PRIVATE_KEY,
       {
-        expiresIn: "15m",
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
         issuer: "Yongki Kim",
       }
     );

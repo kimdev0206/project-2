@@ -43,13 +43,13 @@ module.exports = class AuthMiddleware {
 
     const { userID } = decodedToken;
     const accessToken = this.jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY, {
-      expiresIn: "15m",
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
       issuer: "Yongki Kim",
     });
 
     req.decodedToken = decodedToken;
     res.cookie("accessToken", accessToken, {
-      maxAge: 15 * 60 * 1000, // 15m
+      maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
       httpOnly: true,
     });
     res.header("Authorization", refreshToken);
