@@ -61,7 +61,7 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const token = this.jwt.sign(
+    const accessToken = this.jwt.sign(
       { userID: row.id },
       process.env.JWT_PRIVATE_KEY,
       {
@@ -69,7 +69,19 @@ module.exports = class UsersService {
         issuer: "Yongki Kim",
       }
     );
-    return Promise.resolve(token);
+    const refreshToken = this.jwt.sign(
+      { userID: row.id },
+      process.env.JWT_PRIVATE_KEY,
+      {
+        expiresIn: "15d",
+        issuer: "Yongki Kim",
+      }
+    );
+
+    return Promise.resolve({
+      accessToken,
+      refreshToken,
+    });
   };
 
   postResetPassword = async (param) => {

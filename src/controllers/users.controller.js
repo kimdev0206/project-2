@@ -28,12 +28,13 @@ module.exports = class UsersController {
       const { email, password } = req.body;
 
       const param = { email, password };
-      const token = await this.service.logIn(param);
+      const { accessToken, refreshToken } = await this.service.logIn(param);
 
-      res.cookie("token", token, {
+      res.cookie("accessToken", accessToken, {
         maxAge: 15 * 60 * 1000, // 15m
         httpOnly: true,
       });
+      res.header("Authorization", refreshToken);
       res.json({
         message: "로그인 되었습니다.",
       });
