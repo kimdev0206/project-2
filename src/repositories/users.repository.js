@@ -3,12 +3,11 @@ module.exports = class UsersRepository {
     this.database = database;
   }
 
-  selectUser = async (param) => {
+  selectUserByEmail = async (param) => {
     const pool = await this.database.pool;
     const query = `
       SELECT
-        id,
-        email,
+        id AS userID,
         hashed_password AS hashedPassword,
         salt
       FROM
@@ -17,7 +16,8 @@ module.exports = class UsersRepository {
         email = ?;
     `;
 
-    const [result] = await pool.query(query, [param]);
+    const values = [param.email];
+    const [result] = await pool.query(query, values);
     return result;
   };
 

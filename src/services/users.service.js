@@ -11,7 +11,7 @@ module.exports = class UsersService {
   }
 
   signUp = async (param) => {
-    const [row] = await this.repository.selectUser(param.email);
+    const [row] = await this.repository.selectUserByEmail(param);
 
     if (row) {
       const err = new Error("동일한 email 의 회원이 존재합니다.");
@@ -37,7 +37,7 @@ module.exports = class UsersService {
   };
 
   logIn = async (param) => {
-    const [row] = await this.repository.selectUser(param.email);
+    const [row] = await this.repository.selectUserByEmail(param);
 
     if (!row) {
       const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
@@ -63,7 +63,7 @@ module.exports = class UsersService {
 
     try {
       const accessToken = await this.jwt.sign(
-        { userID: row.id },
+        { userID: row.userID },
         process.env.JWT_PRIVATE_KEY,
         {
           expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
@@ -79,7 +79,7 @@ module.exports = class UsersService {
         }
       );
 
-      param.userID = row.id;
+      param.userID = row.userID;
       param.refreshToken = refreshToken;
       await this.repository.updateUserRefreshToken(param);
 
@@ -91,7 +91,7 @@ module.exports = class UsersService {
   };
 
   postResetPassword = async (param) => {
-    const [row] = await this.repository.selectUser(param.email);
+    const [row] = await this.repository.selectUserByEmail(param);
 
     if (!row) {
       const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
