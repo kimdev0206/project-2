@@ -9,7 +9,7 @@ module.exports = function ({ express, controller, middlewares }) {
   );
   router.get(
     "/:bookID",
-    middlewares.authMiddleware.verifyToken,
+    middlewares.authMiddleware.verifyAccessToken,
     controller.getBook
   );
 

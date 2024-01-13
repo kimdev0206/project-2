@@ -5,7 +5,7 @@ module.exports = class AuthMiddleware {
     this.jwt = jwt;
   }
 
-  verifyToken = async (req, res, next) => {
+  verifyAccessToken = async (req, res, next) => {
     if (!req.headers.authorization) {
       return res.status(this.StatusCodes.BAD_REQUEST).json({
         message: "로그인 API 를 통해, 접근 토큰을 발급 받으세요.",
