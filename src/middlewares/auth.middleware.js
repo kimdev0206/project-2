@@ -6,44 +6,26 @@ module.exports = class AuthMiddleware {
   }
 
   verifyToken = async (req, res, next) => {
-    if (!req.cookies.accessToken && !req.headers.authorization) {
+    if (!req.headers.authorization) {
       return res.status(this.StatusCodes.BAD_REQUEST).json({
-        message: "로그인 API 를 통해 토큰을 발급 받으세요.",
+        message: "로그인 API 를 통해, 접근 토큰을 발급 받으세요.",
       });
     }
 
-    if (req.cookies.accessToken) {
-      const { accessToken } = req.cookies;
-
-      try {
-        req.decodedToken = this.jwt.verify(
-          accessToken,
-          process.env.JWT_PRIVATE_KEY
-        );
-      } catch (err) {
-        if (err instanceof this.jwt.JsonWebTokenError) {
-          this.logger.err(err.message);
-          return res.status(this.StatusCodes.INTERNAL_SERVER_ERROR).json({
-            message: err.message,
-          });
-        }
-      }
-
-      return next();
-    }
-
-    const refreshToken = req.headers.authorization;
-    let decodedToken;
-
     try {
-      decodedToken = this.jwt.verify(refreshToken, process.env.JWT_PRIVATE_KEY);
+      const accessToken = req.headers.authorization;
+      req.decodedToken = await this.jwt.verify(
+        accessToken,
+        process.env.JWT_PRIVATE_KEY
+      );
     } catch (err) {
       if (err instanceof this.jwt.TokenExpiredError) {
         return res.status(this.StatusCodes.UNAUTHORIZED).json({
           message:
-            "토큰이 만료되었습니다. 로그인 API 를 통해 토큰을 재발급 받으세요.",
+            "접근 토큰이 만료되었습니다. 접근 토큰 재발급 API 를 통해, 접근 토큰을 재발급 받으세요.",
         });
       }
+
       if (err instanceof this.jwt.JsonWebTokenError) {
         this.logger.err(err.message);
         return res.status(this.StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -52,27 +34,21 @@ module.exports = class AuthMiddleware {
       }
     }
 
-    const { userID } = decodedToken;
-    let accessToken;
+    next();
+  };
 
-    try {
-      accessToken = this.jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY, {
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-        issuer: "Yongki Kim",
-      });
-    } catch (err) {
-      this.logger.err(err.message);
-      return res.status(this.StatusCodes.INTERNAL_SERVER_ERROR).json({
-        message: err.message,
+  decodeAccessToken = async (req, res, next) => {
+    if (!req.headers.authorization) {
+      return res.status(this.StatusCodes.BAD_REQUEST).json({
+        message: "로그인 API 를 통해, 접근 토큰을 발급 받으세요.",
       });
     }
 
-    req.decodedToken = decodedToken;
-    res.cookie("accessToken", accessToken, {
-      maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-      httpOnly: true,
-    });
-    res.header("Authorization", refreshToken);
+    const accessToken = req.headers.authorization;
+    req.decodedToken = this.jwt.decode(
+      accessToken,
+      process.env.JWT_PRIVATE_KEY
+    );
 
     next();
   };

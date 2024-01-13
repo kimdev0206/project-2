@@ -28,13 +28,9 @@ module.exports = class UsersController {
       const { email, password } = req.body;
 
       const param = { email, password };
-      const { accessToken, refreshToken } = await this.service.logIn(param);
+      const accessToken = await this.service.logIn(param);
 
-      res.cookie("accessToken", accessToken, {
-        maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-        httpOnly: true,
-      });
-      res.header("Authorization", refreshToken);
+      res.header("Authorization", accessToken);
       res.json({
         message: "로그인 되었습니다.",
       });
@@ -76,6 +72,26 @@ module.exports = class UsersController {
 
       res.json({
         message: "비밀번호 초기화 되었습니다.",
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  getAccessToken = async (req, res) => {
+    try {
+      const { userID } = req.decodedToken;
+
+      const param = { userID };
+      const accessToken = await this.service.getAccessToken(param);
+
+      res.header("Authorization", accessToken);
+      res.json({
+        message: "접근 토큰이 재발급 되었습니다.",
       });
     } catch (err) {
       this.logger.err(err.message);

@@ -24,7 +24,7 @@ const likesRoute = makeLikesRoute({
 const usersRoute = makeUsersRoute({
   express,
   controller: controllers.usersController,
-  middleware: middlewares.validMiddleware,
+  middlewares,
 });
 
 module.exports = {

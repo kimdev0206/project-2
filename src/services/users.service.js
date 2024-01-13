@@ -62,7 +62,7 @@ module.exports = class UsersService {
     }
 
     try {
-      const accessToken = this.jwt.sign(
+      const accessToken = await this.jwt.sign(
         { userID: row.id },
         process.env.JWT_PRIVATE_KEY,
         {
@@ -70,8 +70,8 @@ module.exports = class UsersService {
           issuer: "Yongki Kim",
         }
       );
-      const refreshToken = this.jwt.sign(
-        { userID: row.id },
+      const refreshToken = await this.jwt.sign(
+        {},
         process.env.JWT_PRIVATE_KEY,
         {
           expiresIn: "15d",
@@ -79,10 +79,11 @@ module.exports = class UsersService {
         }
       );
 
-      return Promise.resolve({
-        accessToken,
-        refreshToken,
-      });
+      param.userID = row.id;
+      param.refreshToken = refreshToken;
+      await this.repository.updateUserRefreshToken(param);
+
+      return Promise.resolve(accessToken);
     } catch (err) {
       err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
@@ -117,6 +118,34 @@ module.exports = class UsersService {
     if (!affectedRows) {
       const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
       err.statusCode = this.StatusCodes.BAD_REQUEST;
+      return Promise.reject(err);
+    }
+  };
+
+  getAccessToken = async (param) => {
+    const [row] = await this.repository.selectUserByID(param);
+
+    try {
+      await this.jwt.verify(row.refreshToken, process.env.JWT_PRIVATE_KEY);
+
+      const accessToken = await this.jwt.sign(
+        { userID: row.userID },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+          issuer: "Yongki Kim",
+        }
+      );
+
+      return Promise.resolve(accessToken);
+    } catch (err) {
+      if (err instanceof this.jwt.TokenExpiredError) {
+        err.statusCode = this.StatusCodes.UNAUTHORIZED;
+        err.message =
+          "재발급 토큰이 만료되었습니다. 로그인 API 를 통해, 재발급 토큰을 발급 받으세요.";
+      }
+
+      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
     }
   };
