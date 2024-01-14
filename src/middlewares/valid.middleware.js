@@ -44,13 +44,13 @@ module.exports = class ValidMiddleware {
         .query("limit")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt({ allow_leading_zeroes: false })
         .withMessage(this.invalidTypeMessage),
       this.validator
         .query("page")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt({ gt: 0, allow_leading_zeroes: false })
         .withMessage(this.invalidTypeMessage),
     ];
 
