@@ -5,7 +5,7 @@ module.exports = function ({ express, controller, middlewares }) {
   router.post("/reset-password", controller.postResetPassword);
   router.get(
     "/access-token",
-    authMiddleware.decodeAccessToken,
+    authMiddleware.verifyRefreshToken,
     controller.getAccessToken
   );
 

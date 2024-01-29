@@ -71,7 +71,7 @@ module.exports = class UsersService {
         }
       );
       const refreshToken = await this.jwt.sign(
-        {},
+        { userID: row.userID },
         process.env.JWT_PRIVATE_KEY,
         {
           expiresIn: "15d",
@@ -83,7 +83,10 @@ module.exports = class UsersService {
       param.refreshToken = refreshToken;
       await this.repository.updateUserRefreshToken(param);
 
-      return Promise.resolve(accessToken);
+      return Promise.resolve({
+        accessToken,
+        refreshToken,
+      });
     } catch (err) {
       err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
@@ -125,9 +128,13 @@ module.exports = class UsersService {
   getAccessToken = async (param) => {
     const [row] = await this.repository.selectUserByID(param);
 
-    try {
-      await this.jwt.verify(row.refreshToken, process.env.JWT_PRIVATE_KEY);
+    if (row.refreshToken !== param.refreshToken) {
+      const err = new Error("재발급 토큰이 유효하지 않습니다.");
+      err.statusCode = this.StatusCodes.FORBIDDEN;
+      return Promise.reject(err);
+    }
 
+    try {
       const accessToken = await this.jwt.sign(
         { userID: row.userID },
         process.env.JWT_PRIVATE_KEY,
@@ -139,12 +146,6 @@ module.exports = class UsersService {
 
       return Promise.resolve(accessToken);
     } catch (err) {
-      if (err instanceof this.jwt.TokenExpiredError) {
-        err.statusCode = this.StatusCodes.UNAUTHORIZED;
-        err.message =
-          "재발급 토큰이 만료되었습니다. 로그인 API 를 통해, 재발급 토큰을 발급 받으세요.";
-      }
-
       err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
     }
