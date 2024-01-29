@@ -1,5 +1,4 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const logger = require("./src/logger");
 const routes = require("./src/routes");
 
@@ -8,8 +7,7 @@ const app = express();
 app.use(
   logReqMiddleware,
   express.urlencoded({ extended: false }),
-  express.json(),
-  cookieParser()
+  express.json()
 );
 app.get("/", rootPathHandler);
 app.use("/api/users", routes.usersRoute);
