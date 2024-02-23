@@ -38,14 +38,14 @@ module.exports = class AuthMiddleware {
   };
 
   verifyRefreshToken = async (req, res, next) => {
-    if (!req.headers.refreshtoken) {
+    if (!req.headers["refresh-token"]) {
       return res.status(this.StatusCodes.BAD_REQUEST).json({
         message: "로그인 API 를 통해, 재발급 토큰을 발급 받으세요.",
       });
     }
 
     try {
-      const refreshToken = req.headers.refreshtoken;
+      const refreshToken = req.headers["refresh-token"];
       req.decodedToken = await this.jwt.verify(
         refreshToken,
         process.env.JWT_PRIVATE_KEY

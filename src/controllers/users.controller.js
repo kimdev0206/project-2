@@ -31,7 +31,7 @@ module.exports = class UsersController {
       const { accessToken, refreshToken } = await this.service.logIn(param);
 
       res.header("Authorization", accessToken);
-      res.header("RefreshToken", refreshToken);
+      res.header("Refresh-Token", refreshToken);
       res.json({
         message: "로그인 되었습니다.",
       });
@@ -86,7 +86,7 @@ module.exports = class UsersController {
   getAccessToken = async (req, res) => {
     try {
       const { userID } = req.decodedToken;
-      const refreshToken = req.headers.refreshtoken;
+      const refreshToken = req.headers["refresh-token"];
 
       const param = { userID, refreshToken };
       const accessToken = await this.service.getAccessToken(param);
