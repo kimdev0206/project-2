@@ -105,4 +105,18 @@ module.exports = class BooksRepository {
     const [result] = await pool.query(query, values);
     return result;
   };
+
+  selectCategories = async () => {
+    const pool = await this.database.pool;
+    const query = `
+      SELECT
+        id,
+        category
+      FROM
+        categories;
+    `;
+
+    const [result] = await pool.query(query);
+    return result;
+  };
 };

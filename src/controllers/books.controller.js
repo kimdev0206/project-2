@@ -47,4 +47,20 @@ module.exports = class BooksController {
       });
     }
   };
+
+  getCategories = async (_, res) => {
+    try {
+      const data = await this.service.getCategories();
+
+      res.json({
+        data,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
 };
