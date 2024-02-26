@@ -3,12 +3,11 @@ module.exports = class UsersRepository {
     this.database = database;
   }
 
-  selectUser = async (param) => {
+  selectUserByEmail = async (param) => {
     const pool = await this.database.pool;
     const query = `
       SELECT
-        id,
-        email,
+        id AS userID,
         hashed_password AS hashedPassword,
         salt
       FROM
@@ -17,7 +16,25 @@ module.exports = class UsersRepository {
         email = ?;
     `;
 
-    const [result] = await pool.query(query, [param]);
+    const values = [param.email];
+    const [result] = await pool.query(query, values);
+    return result;
+  };
+
+  selectUserByID = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      SELECT
+        id AS userID,
+        refresh_token AS refreshToken
+      FROM
+        users
+      WHERE
+        id = ?;
+    `;
+
+    const values = [param.userID];
+    const [result] = await pool.query(query, values);
     return result;
   };
 
@@ -32,6 +49,22 @@ module.exports = class UsersRepository {
 
     const values = [param.email, param.hashedPassword, param.salt];
     await pool.query(query, values);
+  };
+
+  updateUserRefreshToken = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      UPDATE
+        users
+      SET
+        refresh_token = ?
+      WHERE
+        id = ?;
+    `;
+
+    const values = [param.refreshToken, param.userID];
+    const [result] = await pool.query(query, values);
+    return result;
   };
 
   updateUserPassword = async (param) => {

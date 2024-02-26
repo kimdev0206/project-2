@@ -11,7 +11,7 @@ module.exports = class UsersService {
   }
 
   signUp = async (param) => {
-    const [row] = await this.repository.selectUser(param.email);
+    const [row] = await this.repository.selectUserByEmail(param);
 
     if (row) {
       const err = new Error("동일한 email 의 회원이 존재합니다.");
@@ -37,7 +37,7 @@ module.exports = class UsersService {
   };
 
   logIn = async (param) => {
-    const [row] = await this.repository.selectUser(param.email);
+    const [row] = await this.repository.selectUserByEmail(param);
 
     if (!row) {
       const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
@@ -61,22 +61,40 @@ module.exports = class UsersService {
       return Promise.reject(err);
     }
 
-    const token = this.jwt.sign(
-      {
-        userID: row.id,
-        email: row.email,
-      },
-      process.env.JWT_PRIVATE_KEY,
-      {
-        expiresIn: "15m",
-        issuer: "Yongki Kim",
-      }
-    );
-    return Promise.resolve(token);
+    try {
+      const accessToken = await this.jwt.sign(
+        { userID: row.userID },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+          issuer: "Yongki Kim",
+        }
+      );
+      const refreshToken = await this.jwt.sign(
+        { userID: row.userID },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: "15d",
+          issuer: "Yongki Kim",
+        }
+      );
+
+      param.userID = row.userID;
+      param.refreshToken = refreshToken;
+      await this.repository.updateUserRefreshToken(param);
+
+      return Promise.resolve({
+        accessToken,
+        refreshToken,
+      });
+    } catch (err) {
+      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
+      return Promise.reject(err);
+    }
   };
 
   postResetPassword = async (param) => {
-    const [row] = await this.repository.selectUser(param.email);
+    const [row] = await this.repository.selectUserByEmail(param);
 
     if (!row) {
       const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
@@ -103,6 +121,32 @@ module.exports = class UsersService {
     if (!affectedRows) {
       const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
       err.statusCode = this.StatusCodes.BAD_REQUEST;
+      return Promise.reject(err);
+    }
+  };
+
+  getAccessToken = async (param) => {
+    const [row] = await this.repository.selectUserByID(param);
+
+    if (row.refreshToken !== param.refreshToken) {
+      const err = new Error("재발급 토큰이 유효하지 않습니다.");
+      err.statusCode = this.StatusCodes.FORBIDDEN;
+      return Promise.reject(err);
+    }
+
+    try {
+      const accessToken = await this.jwt.sign(
+        { userID: row.userID },
+        process.env.JWT_PRIVATE_KEY,
+        {
+          expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+          issuer: "Yongki Kim",
+        }
+      );
+
+      return Promise.resolve(accessToken);
+    } catch (err) {
+      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
       return Promise.reject(err);
     }
   };

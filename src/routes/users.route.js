@@ -1,9 +1,15 @@
-module.exports = function ({ express, controller, middleware }) {
+module.exports = function ({ express, controller, middlewares }) {
   const router = express.Router();
+  const { authMiddleware, validMiddleware } = middlewares;
 
   router.post("/reset-password", controller.postResetPassword);
+  router.get(
+    "/access-token",
+    authMiddleware.verifyRefreshToken,
+    controller.getAccessToken
+  );
 
-  router.use(middleware.validateAuth, middleware.errHandler);
+  router.use(validMiddleware.validateAuth, validMiddleware.errHandler);
   router.post("/sign-up", controller.signUp);
   router.post("/log-in", controller.logIn);
   router.put("/reset-password", controller.putResetPassword);
