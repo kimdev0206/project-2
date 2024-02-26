@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const logger = require("./src/logger");
 const routes = require("./src/routes");
 
@@ -6,6 +7,11 @@ const app = express();
 
 app.use(
   logReqMiddleware,
+  cors({
+    origin: process.env.GUEST,
+    exposedHeaders: ["Authorization", "Refresh-Token"],
+    credentials: true,
+  }),
   express.urlencoded({ extended: false }),
   express.json()
 );
