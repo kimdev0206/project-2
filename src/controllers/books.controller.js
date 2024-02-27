@@ -14,9 +14,10 @@ module.exports = class BooksController {
         limit: +limit,
         page,
       };
-      const data = await this.service.getBooks(param);
+      const { meta, data } = await this.service.getBooks(param);
 
       res.json({
+        meta,
         data,
       });
     } catch (err) {

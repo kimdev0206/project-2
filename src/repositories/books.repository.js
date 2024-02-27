@@ -56,6 +56,42 @@ module.exports = class BooksRepository {
     return result;
   };
 
+  selectBooksCount = async (param) => {
+    const pool = await this.database.pool;
+    let query = `
+      SELECT
+        COUNT(*) AS count
+      FROM
+        books AS b
+    `;
+
+    let conditions = [];
+    let values = [];
+
+    if (param.categoryID) {
+      conditions.push("b.category_id = ?");
+      values.push(param.categoryID);
+    }
+
+    if (param.isNew) {
+      conditions.push(
+        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
+      );
+    }
+
+    if (conditions.length) {
+      query += `
+        WHERE
+          ${conditions.join(" AND ")}
+      `;
+    }
+
+    query += ";";
+
+    const [result] = await pool.query(query, values);
+    return result;
+  };
+
   selectBook = async (param) => {
     const pool = await this.database.pool;
     const query = `

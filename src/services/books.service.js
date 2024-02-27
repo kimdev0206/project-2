@@ -14,7 +14,12 @@ module.exports = class BooksService {
       return Promise.reject(err);
     }
 
-    return Promise.resolve(rows);
+    const [{ count }] = await this.repository.selectBooksCount(param);
+
+    return Promise.resolve({
+      meta: { page: param.page, count },
+      data: rows,
+    });
   };
 
   getBook = async (param) => {
