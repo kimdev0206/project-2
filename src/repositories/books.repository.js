@@ -97,6 +97,7 @@ module.exports = class BooksRepository {
       SELECT
         b.id,
         b.title,
+        c.id AS categoryID,
         c.category,
         b.img_id AS imgID,
         b.form,
