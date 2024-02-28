@@ -6,7 +6,7 @@ module.exports = class BooksRepository {
   selectBooks = async (param) => {
     const pool = await this.database.pool;
     let query = `
-      SELECT        
+      SELECT
         b.id,
         b.title,
         b.img_id AS imgID,
@@ -20,8 +20,7 @@ module.exports = class BooksRepository {
             likes
           WHERE
             liked_book_id = b.id
-        ) AS likes,
-        b.pub_date AS pubDate
+        ) AS likes
       FROM
         books AS b
     `;
