@@ -48,9 +48,7 @@ module.exports = class ValidMiddleware {
         .withMessage(this.invalidTypeMessage),
     ];
 
-    for (let validation of validations) {
-      await validation.run(req);
-    }
+    await Promise.all(validations.map((validation) => validation.run(req)));
 
     next();
   };
