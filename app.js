@@ -20,6 +20,7 @@ app.use("/api/users", routes.usersRoute);
 app.use("/api/books", routes.booksRoute);
 app.use("/api/likes", routes.likesRoute);
 app.use("/api/cart-books", routes.cartBooksRoute);
+app.use("/api/orders", routes.ordersRoute);
 
 function logReqMiddleware(req, _, next) {
   logger.info(`${req.method} ${req.url}`);
