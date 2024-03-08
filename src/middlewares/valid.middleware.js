@@ -35,6 +35,12 @@ module.exports = class ValidMiddleware {
         .isBoolean()
         .withMessage(this.invalidTypeMessage),
       this.validator
+        .query("isBest")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isBoolean()
+        .withMessage(this.invalidTypeMessage),
+      this.validator
         .query("limit")
         .notEmpty()
         .withMessage(this.emptyMessage)

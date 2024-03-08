@@ -41,8 +41,16 @@ module.exports = class BooksRepository {
 
     if (conditions.length) {
       query += `
-        WHERE
-          ${conditions.join(" AND ")}
+      WHERE
+      ${conditions.join(" AND ")}
+      `;
+    }
+
+    if (param.isBest) {
+      query += `
+        ORDER BY
+          likes DESC,
+          b.pub_date DESC
       `;
     }
 
