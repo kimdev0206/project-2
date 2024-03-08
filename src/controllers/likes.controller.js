@@ -13,7 +13,7 @@ module.exports = class LikesController {
       const statusCode = await this.service.postLike(param);
 
       res.status(statusCode).json({
-        message: "좋아요 처리되었습니다",
+        message: "좋아요 처리되었습니다.",
       });
     } catch (err) {
       this.logger.err(err.message);
