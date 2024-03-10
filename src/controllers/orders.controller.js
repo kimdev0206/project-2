@@ -53,9 +53,10 @@ module.exports = class OrdersController {
 
   getOrdersDetail = async (req, res) => {
     try {
-      const { orderID } = req.params;
+      const { userID } = req.decodedToken;
+      const { deliveryID } = req.params;
 
-      const param = { orderID };
+      const param = { userID, deliveryID };
       const data = await this.service.getOrdersDetail(param);
 
       res.json({
@@ -72,9 +73,10 @@ module.exports = class OrdersController {
 
   deleteOrder = async (req, res) => {
     try {
-      const { orderID } = req.params;
+      const { userID } = req.decodedToken;
+      const { deliveryID } = req.params;
 
-      const param = { orderID };
+      const param = { userID, deliveryID };
       const statusCode = await this.service.deleteOrder(param);
 
       res.status(statusCode).end();

@@ -19,15 +19,9 @@ module.exports = class OrdersService {
       );
 
       param.deliveryID = deliveryID;
-      const { insertId: orderID } = await ordersRepository.insertOrder(
-        conn,
-        param
-      );
-
-      param.orderID = orderID;
-      param.bookIDs = param.books.map((book) => book.bookID);
+      param.books = JSON.stringify(param.books);
       await Promise.allSettled([
-        ordersRepository.insertOrderedBooks(conn, param),
+        ordersRepository.insertOrder(conn, param),
         cartBooksRepository.deleteCartBooks(conn, param),
       ]);
 
@@ -59,15 +53,15 @@ module.exports = class OrdersService {
 
   getOrdersDetail = async (param) => {
     const { ordersRepository } = this.repositories;
-    const rows = await ordersRepository.selectOrdersDetail(param);
+    const [row] = await ordersRepository.selectOrdersDetail(param);
 
-    if (!rows.length) {
-      const err = new Error("요청하신 orderID 의 주문이 존재하지 않습니다.");
+    if (!row) {
+      const err = new Error("요청하신 deliveryID 의 주문이 존재하지 않습니다.");
       err.statusCode = this.StatusCodes.NOT_FOUND;
       return Promise.reject(err);
     }
 
-    return Promise.resolve(rows);
+    return Promise.resolve(row.books);
   };
 
   deleteOrder = async (param) => {
