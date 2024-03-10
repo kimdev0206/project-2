@@ -11,6 +11,7 @@ module.exports = function ({ express, controller, middlewares }) {
   );
   router.get("/", controller.getOrders);
   router.get("/:orderID", controller.getOrdersDetail);
+  router.delete("/:orderID", controller.deleteOrder);
 
   return router;
 };

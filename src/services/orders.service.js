@@ -69,4 +69,17 @@ module.exports = class OrdersService {
 
     return Promise.resolve(rows);
   };
+
+  deleteOrder = async (param) => {
+    const { ordersRepository } = this.repositories;
+    const { affectedRows } = await ordersRepository.deleteOrder(param);
+
+    if (!affectedRows) {
+      const err = new Error("이미 주문 취소 처리되었습니다.");
+      err.statusCode = this.StatusCodes.NOT_FOUND;
+      return Promise.reject(err);
+    }
+
+    return Promise.resolve(this.StatusCodes.NO_CONTENT);
+  };
 };

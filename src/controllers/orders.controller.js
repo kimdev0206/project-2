@@ -69,4 +69,21 @@ module.exports = class OrdersController {
       });
     }
   };
+
+  deleteOrder = async (req, res) => {
+    try {
+      const { orderID } = req.params;
+
+      const param = { orderID };
+      const statusCode = await this.service.deleteOrder(param);
+
+      res.status(statusCode).end();
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
 };

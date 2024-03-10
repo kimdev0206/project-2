@@ -103,4 +103,19 @@ module.exports = class OrdersRepository {
     const [result] = await pool.query(query, values);
     return result;
   };
+
+  deleteOrder = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      DELETE
+      FROM
+        orders
+      WHERE
+        id = ?;
+    `;
+
+    const values = [param.orderID];
+    const [result] = await pool.query(query, values);
+    return result;
+  };
 };
