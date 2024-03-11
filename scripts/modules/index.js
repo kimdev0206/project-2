@@ -1,7 +1,6 @@
 const { fakerKO: faker } = require("@faker-js/faker");
 const InsertBooks = require("./insert-books");
 const InsertDeliveries = require("./insert-deliveries");
-const InsertOrderedBooks = require("./insert-ordered-books");
 const InsertOrders = require("./insert-orders");
 const InsertUsers = require("./insert-users");
 
@@ -12,14 +11,17 @@ const categorySize = 3;
 
 const insertBooks = new InsertBooks({ faker, bookSize, categorySize });
 const insertDeliveries = new InsertDeliveries({ faker, deliverySize });
-const insertOrderedBooks = new InsertOrderedBooks({ faker, bookSize, deliverySize });
-const insertOrders = new InsertOrders({ faker, deliverySize, userSize });
+const insertOrders = new InsertOrders({
+  faker,
+  deliverySize,
+  userSize,
+  bookSize,
+});
 const insertUsers = new InsertUsers({ faker, userSize });
 
 module.exports = {
   insertBooks,
   insertDeliveries,
-  insertOrderedBooks,
   insertOrders,
   insertUsers,
 };

@@ -9,14 +9,12 @@ async function run({ conn }) {
   ]);
 
   const orders = await modules.insertOrders.run({ conn });
-  const orderedBooks = await modules.insertOrderedBooks.run({ conn });
 
   return {
     usersRows: users.affectedRows,
     booksRows: books.affectedRows,
     deliveriesRows: deliveries.affectedRows,
     ordersRows: orders.affectedRows,
-    orderedBooksRows: orderedBooks.affectedRows,
   };
 }
 
@@ -27,13 +25,7 @@ async function run({ conn }) {
   try {
     await conn.beginTransaction();
 
-    const {
-      usersRows,
-      booksRows,
-      deliveriesRows,
-      ordersRows,
-      orderedBooksRows,
-    } = await run({
+    const { usersRows, booksRows, deliveriesRows, ordersRows } = await run({
       conn,
     });
     await conn.commit();
@@ -44,9 +36,6 @@ async function run({ conn }) {
       `deliveries 테이블에 ${deliveriesRows} 개의 레코드가 추가되었습니다.`
     );
     console.log(`orders 테이블에 ${ordersRows} 개의 레코드가 추가되었습니다.`);
-    console.log(
-      `orderedBooks 테이블에 ${orderedBooksRows} 개의 레코드가 추가되었습니다.`
-    );
   } catch (err) {
     await conn.rollback();
 
