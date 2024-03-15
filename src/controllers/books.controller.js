@@ -13,7 +13,7 @@ module.exports = class BooksController {
         isNew: JSON.parse(isNew),
         isBest: JSON.parse(isBest),
         limit: +limit,
-        page,
+        page: +page,
       };
       const { meta, data } = await this.service.getBooks(param);
 
