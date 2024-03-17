@@ -14,7 +14,12 @@ module.exports = class BooksService {
       return Promise.reject(err);
     }
 
-    return Promise.resolve(rows);
+    const [{ count }] = await this.repository.selectBooksCount(param);
+
+    return Promise.resolve({
+      meta: { page: param.page, count },
+      data: rows,
+    });
   };
 
   getBook = async (param) => {
@@ -27,5 +32,17 @@ module.exports = class BooksService {
     }
 
     return Promise.resolve(row);
+  };
+
+  getCategories = async () => {
+    const rows = await this.repository.selectCategories();
+
+    if (!rows.length) {
+      const err = new Error("카테고리가 존재하지 않습니다.");
+      err.statusCode = this.StatusCodes.NOT_FOUND;
+      return Promise.reject(err);
+    }
+
+    return Promise.resolve(rows);
   };
 };

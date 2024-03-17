@@ -35,22 +35,26 @@ module.exports = class ValidMiddleware {
         .isBoolean()
         .withMessage(this.invalidTypeMessage),
       this.validator
+        .query("isBest")
+        .notEmpty()
+        .withMessage(this.emptyMessage)
+        .isBoolean()
+        .withMessage(this.invalidTypeMessage),
+      this.validator
         .query("limit")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt({ allow_leading_zeroes: false })
         .withMessage(this.invalidTypeMessage),
       this.validator
         .query("page")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt({ gt: 0, allow_leading_zeroes: false })
         .withMessage(this.invalidTypeMessage),
     ];
 
-    for (let validation of validations) {
-      await validation.run(req);
-    }
+    await Promise.all(validations.map((validation) => validation.run(req)));
 
     next();
   };

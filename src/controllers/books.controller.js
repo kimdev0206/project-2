@@ -6,17 +6,19 @@ module.exports = class BooksController {
 
   getBooks = async (req, res) => {
     try {
-      const { categoryID, isNew, limit, page } = req.query;
+      const { categoryID, isNew, isBest, limit, page } = req.query;
 
       const param = {
         categoryID,
         isNew: JSON.parse(isNew),
+        isBest: JSON.parse(isBest),
         limit: +limit,
-        page,
+        page: +page,
       };
-      const data = await this.service.getBooks(param);
+      const { meta, data } = await this.service.getBooks(param);
 
       res.json({
+        meta,
         data,
       });
     } catch (err) {
@@ -35,6 +37,22 @@ module.exports = class BooksController {
 
       const param = { userID, bookID };
       const data = await this.service.getBook(param);
+
+      res.json({
+        data,
+      });
+    } catch (err) {
+      this.logger.err(err.message);
+
+      res.status(err.statusCode).json({
+        message: err.message,
+      });
+    }
+  };
+
+  getCategories = async (_, res) => {
+    try {
+      const data = await this.service.getCategories();
 
       res.json({
         data,

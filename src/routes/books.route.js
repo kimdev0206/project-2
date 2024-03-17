@@ -1,6 +1,7 @@
 module.exports = function ({ express, controller, middlewares }) {
   const router = express.Router();
 
+  router.get("/categories", controller.getCategories);
   router.get(
     "/",
     middlewares.validMiddleware.validateGetBooks,
