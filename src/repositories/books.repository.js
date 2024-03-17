@@ -116,6 +116,7 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
+        b.count,
         (
           SELECT
             COUNT(*)
