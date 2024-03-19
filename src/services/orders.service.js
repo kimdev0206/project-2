@@ -6,7 +6,8 @@ module.exports = class OrdersService {
   }
 
   postOrder = async (param) => {
-    const { cartBooksRepository, ordersRepository } = this.repositories;
+    const { booksRepository, cartBooksRepository, ordersRepository } =
+      this.repositories;
     const pool = await this.database.pool;
     const conn = await pool.getConnection();
 
@@ -18,8 +19,15 @@ module.exports = class OrdersService {
         param.delivery
       );
 
+      const { affectedRows } = await booksRepository.updateCount(conn, param);
+
+      if (!affectedRows) {
+        const err = new Error("남은 수량이 존재하지 않습니다.");
+        err.statusCode = this.StatusCodes.NOT_FOUND;
+        return Promise.reject(err);
+      }
+
       param.deliveryID = deliveryID;
-      param.books = JSON.stringify(param.books);
       await Promise.allSettled([
         ordersRepository.insertOrder(conn, param),
         cartBooksRepository.deleteCartBooks(conn, param),

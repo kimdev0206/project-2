@@ -34,7 +34,7 @@ module.exports = class OrdersRepository {
     const values = [
       param.userID,
       param.deliveryID,
-      param.books,
+      JSON.stringify(param.books),
       param.mainBookTitle,
       param.totalCount,
       param.totalPrice,
