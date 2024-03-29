@@ -4,7 +4,7 @@ module.exports = class BooksController {
     this.logger = logger;
   }
 
-  getBooks = async (req, res) => {
+  getBooks = async (req, res, next) => {
     try {
       const { categoryID, isNew, isBest, limit, page } = req.query;
 
@@ -22,15 +22,11 @@ module.exports = class BooksController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
-  getBook = async (req, res) => {
+  getBook = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
@@ -42,15 +38,11 @@ module.exports = class BooksController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
-  getCategories = async (_, res) => {
+  getCategories = async (_, res, next) => {
     try {
       const data = await this.service.getCategories();
 
@@ -58,11 +50,7 @@ module.exports = class BooksController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 };
