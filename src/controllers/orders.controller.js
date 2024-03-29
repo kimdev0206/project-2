@@ -4,7 +4,7 @@ module.exports = class OrdersController {
     this.logger = logger;
   }
 
-  postOrder = async (req, res) => {
+  postOrder = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { mainBookTitle, books, delivery, totalCount, totalPrice } =
@@ -24,15 +24,13 @@ module.exports = class OrdersController {
         message: "주문 처리되었습니다.",
       });
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.postOrder.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
-  getOrders = async (req, res) => {
+  getOrders = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
 
@@ -43,11 +41,9 @@ module.exports = class OrdersController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.getOrders.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
@@ -63,11 +59,9 @@ module.exports = class OrdersController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.getOrdersDetail.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
@@ -81,11 +75,9 @@ module.exports = class OrdersController {
 
       res.status(statusCode).end();
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.deleteOrder.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 };
