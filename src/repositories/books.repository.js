@@ -39,6 +39,32 @@ module.exports = class BooksRepository {
       );
     }
 
+    if (param.keyword) {
+      let condition = [];
+
+      if (param.isTitle) {
+        condition.push("b.title LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isSummary) {
+        condition.push("b.summary LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isContents) {
+        condition.push("b.contents LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isDetail) {
+        condition.push("b.detail LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      condition.length && conditions.push(condition.join(" OR "));
+    }
+
     if (conditions.length) {
       query += `
       WHERE
@@ -84,6 +110,32 @@ module.exports = class BooksRepository {
       conditions.push(
         "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
       );
+    }
+
+    if (param.keyword) {
+      let condition = [];
+
+      if (param.isTitle) {
+        condition.push("b.title LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isSummary) {
+        condition.push("b.summary LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isContents) {
+        condition.push("b.contents LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isDetail) {
+        condition.push("b.detail LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      condition.length && conditions.push(condition.join(" OR "));
     }
 
     if (conditions.length) {

@@ -6,14 +6,30 @@ module.exports = class BooksController {
 
   getBooks = async (req, res, next) => {
     try {
-      const { categoryID, isNew, isBest, limit, page } = req.query;
+      const {
+        categoryID,
+        isNew,
+        isBest,
+        isTitle,
+        isSummary,
+        isContents,
+        isDetail,
+        limit,
+        page,
+        keyword,
+      } = req.query;
 
       const param = {
         categoryID,
         isNew: JSON.parse(isNew),
         isBest: JSON.parse(isBest),
+        isTitle: isTitle && JSON.parse(isTitle),
+        isSummary: isSummary && JSON.parse(isSummary),
+        isContents: isContents && JSON.parse(isContents),
+        isDetail: isDetail && JSON.parse(isDetail),
         limit: +limit,
         page: +page,
+        keyword,
       };
       const { meta, data } = await this.service.getBooks(param);
 
