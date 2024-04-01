@@ -21,12 +21,12 @@ module.exports = class BooksController {
 
       const param = {
         categoryID,
-        isNew: JSON.parse(isNew),
-        isBest: JSON.parse(isBest),
-        isTitle: isTitle && JSON.parse(isTitle),
-        isSummary: isSummary && JSON.parse(isSummary),
-        isContents: isContents && JSON.parse(isContents),
-        isDetail: isDetail && JSON.parse(isDetail),
+        isNew,
+        isBest,
+        isTitle,
+        isSummary,
+        isContents,
+        isDetail,
         limit: +limit,
         page: +page,
         keyword,
