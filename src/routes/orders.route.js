@@ -10,7 +10,8 @@ module.exports = function ({ express, controller, middlewares }) {
     controller.postOrder
   );
   router.get("/", controller.getOrders);
-  router.get("/:orderID", controller.getOrdersDetail);
+  router.get("/:deliveryID", controller.getOrdersDetail);
+  router.delete("/:deliveryID", controller.deleteOrder);
 
   return router;
 };

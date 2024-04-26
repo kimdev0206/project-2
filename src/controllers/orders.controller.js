@@ -4,7 +4,7 @@ module.exports = class OrdersController {
     this.logger = logger;
   }
 
-  postOrder = async (req, res) => {
+  postOrder = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { mainBookTitle, books, delivery, totalCount, totalPrice } =
@@ -24,15 +24,13 @@ module.exports = class OrdersController {
         message: "주문 처리되었습니다.",
       });
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.postOrder.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
-  getOrders = async (req, res) => {
+  getOrders = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
 
@@ -43,30 +41,43 @@ module.exports = class OrdersController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.getOrders.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
   getOrdersDetail = async (req, res) => {
     try {
-      const { orderID } = req.params;
+      const { userID } = req.decodedToken;
+      const { deliveryID } = req.params;
 
-      const param = { orderID };
+      const param = { userID, deliveryID };
       const data = await this.service.getOrdersDetail(param);
 
       res.json({
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
+      res.locals.name = this.getOrdersDetail.name;
 
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
+    }
+  };
+
+  deleteOrder = async (req, res) => {
+    try {
+      const { userID } = req.decodedToken;
+      const { deliveryID } = req.params;
+
+      const param = { userID, deliveryID };
+      const statusCode = await this.service.deleteOrder(param);
+
+      res.status(statusCode).end();
+    } catch (err) {
+      res.locals.name = this.deleteOrder.name;
+
+      next(err);
     }
   };
 };

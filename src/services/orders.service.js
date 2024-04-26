@@ -6,7 +6,8 @@ module.exports = class OrdersService {
   }
 
   postOrder = async (param) => {
-    const { cartBooksRepository, ordersRepository } = this.repositories;
+    const { booksRepository, cartBooksRepository, ordersRepository } =
+      this.repositories;
     const pool = await this.database.pool;
     const conn = await pool.getConnection();
 
@@ -18,16 +19,17 @@ module.exports = class OrdersService {
         param.delivery
       );
 
-      param.deliveryID = deliveryID;
-      const { insertId: orderID } = await ordersRepository.insertOrder(
-        conn,
-        param
-      );
+      const { affectedRows } = await booksRepository.updateCount(conn, param);
 
-      param.orderID = orderID;
-      param.bookIDs = param.books.map((book) => book.bookID);
+      if (!affectedRows) {
+        const err = new Error("남은 수량이 존재하지 않습니다.");
+        err.statusCode = this.StatusCodes.NOT_FOUND;
+        return Promise.reject(err);
+      }
+
+      param.deliveryID = deliveryID;
       await Promise.allSettled([
-        ordersRepository.insertOrderedBooks(conn, param),
+        ordersRepository.insertOrder(conn, param),
         cartBooksRepository.deleteCartBooks(conn, param),
       ]);
 
@@ -59,14 +61,27 @@ module.exports = class OrdersService {
 
   getOrdersDetail = async (param) => {
     const { ordersRepository } = this.repositories;
-    const rows = await ordersRepository.selectOrdersDetail(param);
+    const [row] = await ordersRepository.selectOrdersDetail(param);
 
-    if (!rows.length) {
-      const err = new Error("요청하신 orderID 의 주문이 존재하지 않습니다.");
+    if (!row) {
+      const err = new Error("요청하신 deliveryID 의 주문이 존재하지 않습니다.");
       err.statusCode = this.StatusCodes.NOT_FOUND;
       return Promise.reject(err);
     }
 
-    return Promise.resolve(rows);
+    return Promise.resolve(row.books);
+  };
+
+  deleteOrder = async (param) => {
+    const { ordersRepository } = this.repositories;
+    const { affectedRows } = await ordersRepository.deleteOrder(param);
+
+    if (!affectedRows) {
+      const err = new Error("이미 주문 취소 처리되었습니다.");
+      err.statusCode = this.StatusCodes.NOT_FOUND;
+      return Promise.reject(err);
+    }
+
+    return Promise.resolve(this.StatusCodes.NO_CONTENT);
   };
 };

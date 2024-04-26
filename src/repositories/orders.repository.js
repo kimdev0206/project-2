@@ -22,36 +22,24 @@ module.exports = class OrdersRepository {
         (
           user_id,
           delivery_id,
+          books,
           main_book_title,
           total_count,
           total_price
         )
       VALUES
-        (?, ?, ?, ?, ?);
+        (?, ?, ?, ?, ?, ?);
     `;
 
     const values = [
       param.userID,
       param.deliveryID,
+      JSON.stringify(param.books),
       param.mainBookTitle,
       param.totalCount,
       param.totalPrice,
     ];
-    const [result] = await conn.query(query, values);
-    return result;
-  };
 
-  insertOrderedBooks = async (conn, param) => {
-    const query = `
-      INSERT INTO ordered_books
-        (order_id, book_id, count)
-      VALUES
-        ?;
-    `;
-
-    const values = [
-      param.books.map((book) => [param.orderID, book.bookID, book.count]),
-    ];
     await conn.query(query, values);
   };
 
@@ -59,7 +47,7 @@ module.exports = class OrdersRepository {
     const pool = await this.database.pool;
     const query = `
       SELECT
-        o.id AS orderID,
+        d.id AS deliveryID,
         d.address,
         d.receiver,
         d.contact,
@@ -85,21 +73,31 @@ module.exports = class OrdersRepository {
     const pool = await this.database.pool;
     const query = `
       SELECT
-        b.id AS bookID,
-        b.title,
-        b.author,
-        b.price,
-        ob.count
+        books AS books
       FROM
-        books AS b
-      LEFT JOIN
-        ordered_books AS ob
-        ON b.id = ob.book_id
+        orders
       WHERE
-        ob.order_id = ?;
+        user_id = ?
+        AND delivery_id = ?;
     `;
 
-    const values = [param.orderID];
+    const values = [param.userID, param.deliveryID];
+    const [result] = await pool.query(query, values);
+    return result;
+  };
+
+  deleteOrder = async (param) => {
+    const pool = await this.database.pool;
+    const query = `
+      DELETE
+      FROM
+        orders
+      WHERE
+        user_id = ?
+        AND delivery_id = ?;
+    `;
+
+    const values = [param.userID, param.deliveryID];
     const [result] = await pool.query(query, values);
     return result;
   };
