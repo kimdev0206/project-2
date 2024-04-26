@@ -14,7 +14,7 @@ module.exports = class CartBooksController {
       const statusCode = await this.service.postCartBook(param);
 
       res.status(statusCode).json({
-        message: "장바구니 담기 처리되었습니다",
+        message: "장바구니 담기 처리되었습니다.",
       });
     } catch (err) {
       this.logger.err(err.message);

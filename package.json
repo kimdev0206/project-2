@@ -4,13 +4,10 @@
   "description": "",
   "main": "./bin/www",
   "scripts": {
-    "dev": "set DEBUG=log:* & node_modules\\.bin\\nodemon --env-file=.env ./bin/www"
+    "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www"
   },
   "author": "Yongki Kim",
   "license": "ISC",
-  "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
   "dependencies": {
     "cors": "^2.8.5",
     "debug": "^4.3.4",

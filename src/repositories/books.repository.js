@@ -213,7 +213,23 @@ module.exports = class BooksRepository {
         categories;
     `;
 
-    const [result] = await pool.query(query);
+    const [result] = await pool.query(query);        
+    return result;
+  };
+    
+  updateCount = async (conn, param) => {
+    const query = `
+      UPDATE
+        books
+      SET
+        count = count - 1
+      WHERE
+        count > 0
+        AND id IN ( ? );
+    `;
+
+    const values = [param.books.map((book) => book.bookID)];
+    const [result] = await conn.query(query, values);
     return result;
   };
 };

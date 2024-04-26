@@ -21,6 +21,7 @@ app.use("/api/users", routes.usersRoute);
 app.use("/api/books", routes.booksRoute);
 app.use("/api/likes", routes.likesRoute);
 app.use("/api/cart-books", routes.cartBooksRoute);
+app.use("/api/orders", routes.ordersRoute);
 app.use(errHandler);
 
 function logReqMiddleware(req, _, next) {
@@ -32,12 +33,17 @@ function rootPathHandler(_, res) {
   res.redirect(process.env.API_DOCS_URL);
 }
 
-function errHandler(err, _, res, _) {
-  logger.err(err.message);
+function errHandler(err, req, res, _) {
+  logger.err(`(Where) ${res.locals.name} method`);
+  logger.err(
+    `(Who) userID ${req.decodedToken ? req.decodedToken.userID : undefined}`
+  );
+  logger.err(`(When) ${new Date().toLocaleTimeString()}`);
+  logger.err(`(Why) ${err.message}`);
 
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+  res.status(err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR);
   res.json({
-    message: "서버 내부에서 에러가 발생하였습니다.",
+    message: err.message || "서버 내부에서 에러가 발생하였습니다.",
   });
 }
 

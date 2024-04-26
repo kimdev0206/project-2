@@ -32,6 +32,20 @@ module.exports = class CartBooksRepository {
     return result;
   };
 
+  deleteCartBooks = async (conn, param) => {
+    let query = `
+      DELETE
+      FROM
+        cart_books
+      WHERE
+        user_id = ?
+        AND book_id IN ( ? );
+    `;
+
+    const values = [param.userID, param.bookIDs];
+    await conn.query(query, values);
+  };
+
   selectCartBooks = async (param) => {
     const pool = await this.database.pool;
     let query = `
