@@ -6,7 +6,7 @@ module.exports = class BooksRepository {
   selectBooks = async (param) => {
     const pool = await this.database.pool;
     let query = `
-      SELECT        
+      SELECT
         b.id,
         b.title,
         b.img_id AS imgID,
@@ -20,8 +20,7 @@ module.exports = class BooksRepository {
             likes
           WHERE
             liked_book_id = b.id
-        ) AS likes,
-        b.pub_date AS pubDate
+        ) AS likes
       FROM
         books AS b
     `;
@@ -40,15 +39,111 @@ module.exports = class BooksRepository {
       );
     }
 
+    if (param.keyword) {
+      let condition = [];
+
+      if (param.isTitle) {
+        condition.push("b.title LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isSummary) {
+        condition.push("b.summary LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isContents) {
+        condition.push("b.contents LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isDetail) {
+        condition.push("b.detail LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      condition.length && conditions.push(condition.join(" OR "));
+    }
+
+    if (conditions.length) {
+      query += `
+      WHERE
+      ${conditions.join(" AND ")}
+      `;
+    }
+
+    if (param.isBest) {
+      query += `
+        ORDER BY
+          likes DESC,
+          b.pub_date DESC
+      `;
+    }
+
+    query += "LIMIT ? OFFSET ?";
+    values.push(param.limit, param.offset);
+
+    query += ";";
+
+    const [result] = await pool.query(query, values);
+    return result;
+  };
+
+  selectBooksCount = async (param) => {
+    const pool = await this.database.pool;
+    let query = `
+      SELECT
+        COUNT(*) AS count
+      FROM
+        books AS b
+    `;
+
+    let conditions = [];
+    let values = [];
+
+    if (param.categoryID) {
+      conditions.push("b.category_id = ?");
+      values.push(param.categoryID);
+    }
+
+    if (param.isNew) {
+      conditions.push(
+        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
+      );
+    }
+
+    if (param.keyword) {
+      let condition = [];
+
+      if (param.isTitle) {
+        condition.push("b.title LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isSummary) {
+        condition.push("b.summary LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isContents) {
+        condition.push("b.contents LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isDetail) {
+        condition.push("b.detail LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      condition.length && conditions.push(condition.join(" OR "));
+    }
+
     if (conditions.length) {
       query += `
         WHERE
           ${conditions.join(" AND ")}
       `;
     }
-
-    query += "LIMIT ? OFFSET ?";
-    values.push(param.limit, param.offset);
 
     query += ";";
 
@@ -62,6 +157,7 @@ module.exports = class BooksRepository {
       SELECT
         b.id,
         b.title,
+        c.id AS categoryID,
         c.category,
         b.img_id AS imgID,
         b.form,
@@ -72,6 +168,7 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
+        b.count,
         (
           SELECT
             COUNT(*)
@@ -106,6 +203,20 @@ module.exports = class BooksRepository {
     return result;
   };
 
+  selectCategories = async () => {
+    const pool = await this.database.pool;
+    const query = `
+      SELECT
+        id,
+        category
+      FROM
+        categories;
+    `;
+
+    const [result] = await pool.query(query);        
+    return result;
+  };
+    
   updateCount = async (conn, param) => {
     const query = `
       UPDATE

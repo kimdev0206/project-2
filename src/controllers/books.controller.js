@@ -4,31 +4,45 @@ module.exports = class BooksController {
     this.logger = logger;
   }
 
-  getBooks = async (req, res) => {
+  getBooks = async (req, res, next) => {
     try {
-      const { categoryID, isNew, limit, page } = req.query;
+      const {
+        categoryID,
+        isNew,
+        isBest,
+        isTitle,
+        isSummary,
+        isContents,
+        isDetail,
+        limit,
+        page,
+        keyword,
+      } = req.query;
 
       const param = {
         categoryID,
-        isNew: JSON.parse(isNew),
+        isNew,
+        isBest,
+        isTitle,
+        isSummary,
+        isContents,
+        isDetail,
         limit: +limit,
-        page,
+        page: +page,
+        keyword,
       };
-      const data = await this.service.getBooks(param);
+      const { meta, data } = await this.service.getBooks(param);
 
       res.json({
+        meta,
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      next(err);
     }
   };
 
-  getBook = async (req, res) => {
+  getBook = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
@@ -40,11 +54,19 @@ module.exports = class BooksController {
         data,
       });
     } catch (err) {
-      this.logger.err(err.message);
+      next(err);
+    }
+  };
 
-      res.status(err.statusCode).json({
-        message: err.message,
+  getCategories = async (_, res, next) => {
+    try {
+      const data = await this.service.getCategories();
+
+      res.json({
+        data,
       });
+    } catch (err) {
+      next(err);
     }
   };
 };

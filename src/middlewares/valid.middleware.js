@@ -7,6 +7,11 @@ module.exports = class ValidMiddleware {
     this.validator = validator;
   }
 
+  isBoolean = (value) => {
+    if (typeof value === "string" && value === "true") return true;
+    return false;
+  };
+
   validateAuth = async (req, _, next) => {
     const validations = [
       this.validator
@@ -30,27 +35,49 @@ module.exports = class ValidMiddleware {
     const validations = [
       this.validator
         .query("isNew")
-        .notEmpty()
-        .withMessage(this.emptyMessage)
-        .isBoolean()
+        .optional()
+        .custom(this.isBoolean)
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .query("isBest")
+        .optional()
+        .custom(this.isBoolean)
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .query("isTitle")
+        .optional()
+        .custom(this.isBoolean)
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .query("isSummary")
+        .optional()
+        .custom(this.isBoolean)
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .query("isContents")
+        .optional()
+        .custom(this.isBoolean)
+        .withMessage(this.invalidTypeMessage),
+      this.validator
+        .query("isDetail")
+        .optional()
+        .custom(this.isBoolean)
         .withMessage(this.invalidTypeMessage),
       this.validator
         .query("limit")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt({ allow_leading_zeroes: false })
         .withMessage(this.invalidTypeMessage),
       this.validator
         .query("page")
         .notEmpty()
         .withMessage(this.emptyMessage)
-        .isNumeric()
+        .isInt({ gt: 0, allow_leading_zeroes: false })
         .withMessage(this.invalidTypeMessage),
     ];
 
-    for (let validation of validations) {
-      await validation.run(req);
-    }
+    await Promise.all(validations.map((validation) => validation.run(req)));
 
     next();
   };
