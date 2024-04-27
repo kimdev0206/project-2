@@ -1,10 +1,10 @@
-module.exports = class LikesRepository {
-  constructor(database) {
-    this.database = database;
-  }
+const database = require("../database");
 
-  insertLike = async (param) => {
-    const pool = await this.database.pool;
+module.exports = class LikesRepository {
+  database = database;
+
+  async insertLike(param) {
+    const pool = this.database.pool;
     const query = `
       INSERT INTO likes
         (user_id, liked_book_id)
@@ -14,10 +14,10 @@ module.exports = class LikesRepository {
 
     const values = [param.userID, param.bookID];
     await pool.query(query, values);
-  };
+  }
 
-  deleteLike = async (param) => {
-    const pool = await this.database.pool;
+  async deleteLike(param) {
+    const pool = this.database.pool;
     const query = `
       DELETE
       FROM
@@ -30,5 +30,5 @@ module.exports = class LikesRepository {
     const values = [param.userID, param.bookID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 };

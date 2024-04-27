@@ -1,9 +1,9 @@
-module.exports = class OrdersRepository {
-  constructor(database) {
-    this.database = database;
-  }
+const database = require("../database");
 
-  insertDelivery = async (conn, param) => {
+module.exports = class OrdersRepository {
+  database = database;
+
+  async insertDelivery(conn, param) {
     const query = `
       INSERT INTO deliveries
         (address, receiver, contact)
@@ -14,9 +14,9 @@ module.exports = class OrdersRepository {
     const values = [param.address, param.receiver, param.contact];
     const [result] = await conn.query(query, values);
     return result;
-  };
+  }
 
-  insertOrder = async (conn, param) => {
+  async insertOrder(conn, param) {
     const query = `
       INSERT INTO orders
         (
@@ -41,10 +41,10 @@ module.exports = class OrdersRepository {
     ];
 
     await conn.query(query, values);
-  };
+  }
 
-  selectOrders = async (param) => {
-    const pool = await this.database.pool;
+  async selectOrders(param) {
+    const pool = this.database.pool;
     const query = `
       SELECT
         d.id AS deliveryID,
@@ -67,10 +67,10 @@ module.exports = class OrdersRepository {
     const values = [param.userID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  selectOrdersDetail = async (param) => {
-    const pool = await this.database.pool;
+  async selectOrdersDetail(param) {
+    const pool = this.database.pool;
     const query = `
       SELECT
         books AS books
@@ -84,10 +84,10 @@ module.exports = class OrdersRepository {
     const values = [param.userID, param.deliveryID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  deleteOrder = async (param) => {
-    const pool = await this.database.pool;
+  async deleteOrder(param) {
+    const pool = this.database.pool;
     const query = `
       DELETE
       FROM
@@ -100,5 +100,5 @@ module.exports = class OrdersRepository {
     const values = [param.userID, param.deliveryID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 };

@@ -1,10 +1,10 @@
-module.exports = class CartBooksRepository {
-  constructor(database) {
-    this.database = database;
-  }
+const database = require("../database");
 
-  insertCartBook = async (param) => {
-    const pool = await this.database.pool;
+module.exports = class CartBooksRepository {
+  database = database;
+
+  async insertCartBook(param) {
+    const pool = this.database.pool;
     const query = `
       INSERT INTO cart_books
         (book_id, user_id, count)
@@ -14,10 +14,10 @@ module.exports = class CartBooksRepository {
 
     const values = [param.bookID, param.userID, param.count];
     await pool.query(query, values);
-  };
+  }
 
-  deleteCartBook = async (param) => {
-    const pool = await this.database.pool;
+  async deleteCartBook(param) {
+    const pool = this.database.pool;
     const query = `
       DELETE
       FROM
@@ -30,9 +30,9 @@ module.exports = class CartBooksRepository {
     const values = [param.userID, param.bookID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  deleteCartBooks = async (conn, param) => {
+  async deleteCartBooks(conn, param) {
     let query = `
       DELETE
       FROM
@@ -44,10 +44,10 @@ module.exports = class CartBooksRepository {
 
     const values = [param.userID, param.bookIDs];
     await conn.query(query, values);
-  };
+  }
 
-  selectCartBooks = async (param) => {
-    const pool = await this.database.pool;
+  async selectCartBooks(param) {
+    const pool = this.database.pool;
     let query = `
       SELECT
         cb.book_id AS bookID,
@@ -86,5 +86,5 @@ module.exports = class CartBooksRepository {
 
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 };

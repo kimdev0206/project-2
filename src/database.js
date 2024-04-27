@@ -9,22 +9,14 @@ class Database {
     database: "project-2",
     dateStrings: true,
   };
+  pool = mysql.createPool(this.config);
 
-  constructor({ mysql, logger }) {
-    this._pool = mysql.createPool(this.config);
-    this._pool
+  connect() {
+    this.pool
       .query("SELECT 1;")
       .then(() => logger.info("Connected on port 3306 (MySQL)"))
-      .catch((err) => logger.err(err.message));
-  }
-
-  get pool() {
-    return this._pool;
-  }
-
-  set pool(pool) {
-    this._pool = pool;
+      .catch((error) => logger.error(error.message));
   }
 }
 
-module.exports = new Database({ mysql, logger });
+module.exports = new Database();

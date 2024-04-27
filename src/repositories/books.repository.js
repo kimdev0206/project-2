@@ -1,10 +1,10 @@
-module.exports = class BooksRepository {
-  constructor(database) {
-    this.database = database;
-  }
+const database = require("../database");
 
-  selectBooks = async (param) => {
-    const pool = await this.database.pool;
+module.exports = class BooksRepository {
+  database = database;
+
+  async selectBooks(param) {
+    const pool = this.database.pool;
     let query = `
       SELECT
         b.id,
@@ -87,10 +87,10 @@ module.exports = class BooksRepository {
 
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  selectBooksCount = async (param) => {
-    const pool = await this.database.pool;
+  async selectBooksCount(param) {
+    const pool = this.database.pool;
     let query = `
       SELECT
         COUNT(*) AS count
@@ -149,10 +149,10 @@ module.exports = class BooksRepository {
 
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  selectBook = async (param) => {
-    const pool = await this.database.pool;
+  async selectBook(param) {
+    const pool = this.database.pool;
     const query = `
       SELECT
         b.id,
@@ -201,23 +201,9 @@ module.exports = class BooksRepository {
     const values = [param.userID, param.bookID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  selectCategories = async () => {
-    const pool = await this.database.pool;
-    const query = `
-      SELECT
-        id,
-        category
-      FROM
-        categories;
-    `;
-
-    const [result] = await pool.query(query);        
-    return result;
-  };
-    
-  updateCount = async (conn, param) => {
+  async updateCount(conn, param) {
     const query = `
       UPDATE
         books
@@ -231,5 +217,5 @@ module.exports = class BooksRepository {
     const values = [param.books.map((book) => book.bookID)];
     const [result] = await conn.query(query, values);
     return result;
-  };
+  }
 };

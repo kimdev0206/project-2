@@ -1,10 +1,10 @@
-module.exports = class UsersRepository {
-  constructor(database) {
-    this.database = database;
-  }
+const database = require("../database");
 
-  selectUserByEmail = async (param) => {
-    const pool = await this.database.pool;
+module.exports = class UsersRepository {
+  database = database;
+
+  async selectUserByEmail(param) {
+    const pool = this.database.pool;
     const query = `
       SELECT
         id AS userID,
@@ -19,10 +19,10 @@ module.exports = class UsersRepository {
     const values = [param.email];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  selectUserByID = async (param) => {
-    const pool = await this.database.pool;
+  async selectUserByID(param) {
+    const pool = this.database.pool;
     const query = `
       SELECT
         id AS userID,
@@ -36,10 +36,10 @@ module.exports = class UsersRepository {
     const values = [param.userID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  insertUser = async (param) => {
-    const pool = await this.database.pool;
+  async insertUser(param) {
+    const pool = this.database.pool;
     const query = `
       INSERT INTO users
         (email, hashed_password, salt)
@@ -49,10 +49,10 @@ module.exports = class UsersRepository {
 
     const values = [param.email, param.hashedPassword, param.salt];
     await pool.query(query, values);
-  };
+  }
 
-  updateUserRefreshToken = async (param) => {
-    const pool = await this.database.pool;
+  async updateUserRefreshToken(param) {
+    const pool = this.database.pool;
     const query = `
       UPDATE
         users
@@ -65,10 +65,10 @@ module.exports = class UsersRepository {
     const values = [param.refreshToken, param.userID];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 
-  updateUserPassword = async (param) => {
-    const pool = await this.database.pool;
+  async updateUserPassword(param) {
+    const pool = this.database.pool;
     const query = `
       UPDATE
         users
@@ -82,5 +82,5 @@ module.exports = class UsersRepository {
     const values = [param.hashedPassword, param.salt, param.email];
     const [result] = await pool.query(query, values);
     return result;
-  };
+  }
 };
