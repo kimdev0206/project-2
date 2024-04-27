@@ -1,27 +1,26 @@
+const { randomBytes, pbkdf2 } = require("node:crypto");
+const { promisify } = require("node:util");
+const { StatusCodes } = require("http-status-codes");
+const jwt = require("jsonwebtoken");
+const HttpError = require("../error/HttpError");
+const UsersRepository = require("../repositories/users.repository");
+
 module.exports = class UsersService {
   bufLen = 16; // NOTE: 최종 hashedPassword 길이가 아닙니다.
   iterations = 100_000;
+  repository = new UsersRepository();
 
-  constructor({ repository, randomBytes, pbkdf2, StatusCodes, jwt }) {
-    this.repository = repository;
-    this.randomBytes = randomBytes;
-    this.pbkdf2 = pbkdf2;
-    this.StatusCodes = StatusCodes;
-    this.jwt = jwt;
-  }
-
-  signUp = async (param) => {
+  async signUp(param) {
     const [row] = await this.repository.selectUserByEmail(param);
 
     if (row) {
-      const err = new Error("동일한 email 의 회원이 존재합니다.");
-      err.statusCode = this.StatusCodes.BAD_REQUEST;
-      return Promise.reject(err);
+      const message = "동일한 email 의 회원이 존재합니다.";
+      throw new HttpError(StatusCodes.BAD_REQUEST, message);
     }
 
-    const salt = (await this.randomBytes(this.bufLen)).toString("base64");
+    const salt = (await promisify(randomBytes)(this.bufLen)).toString("base64");
     const hashedPassword = (
-      await this.pbkdf2(
+      await promisify(pbkdf2)(
         param.password,
         salt,
         this.iterations,
@@ -33,20 +32,19 @@ module.exports = class UsersService {
     param = { ...param, salt, hashedPassword };
     await this.repository.insertUser(param);
 
-    return Promise.resolve(this.StatusCodes.CREATED);
-  };
+    return Promise.resolve(StatusCodes.CREATED);
+  }
 
-  logIn = async (param) => {
+  async logIn(param) {
     const [row] = await this.repository.selectUserByEmail(param);
 
     if (!row) {
-      const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
-      err.statusCode = this.StatusCodes.BAD_REQUEST;
-      return Promise.reject(err);
+      const message = "요청하신 email 의 회원이 존재하지 않습니다.";
+      throw new HttpError(StatusCodes.BAD_REQUEST, message);
     }
 
     const hashedPassword = (
-      await this.pbkdf2(
+      await promisify(pbkdf2)(
         param.password,
         row.salt,
         this.iterations,
@@ -56,57 +54,50 @@ module.exports = class UsersService {
     ).toString("base64");
 
     if (row.hashedPassword !== hashedPassword) {
-      const err = new Error("요청하신 password 가 일치하지 않습니다.");
-      err.statusCode = this.StatusCodes.UNAUTHORIZED;
-      return Promise.reject(err);
+      const message = "요청하신 password 가 일치하지 않습니다.";
+      throw new HttpError(StatusCodes.UNAUTHORIZED, message);
     }
 
-    try {
-      const accessToken = await this.jwt.sign(
-        { userID: row.userID },
-        process.env.JWT_PRIVATE_KEY,
-        {
-          expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-          issuer: "Yongki Kim",
-        }
-      );
-      const refreshToken = await this.jwt.sign(
-        { userID: row.userID },
-        process.env.JWT_PRIVATE_KEY,
-        {
-          expiresIn: "15d",
-          issuer: "Yongki Kim",
-        }
-      );
+    const accessToken = jwt.sign(
+      { userID: row.userID },
+      process.env.JWT_PRIVATE_KEY,
+      {
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+        issuer: "Yongki Kim",
+      }
+    );
+    const refreshToken = jwt.sign(
+      { userID: row.userID },
+      process.env.JWT_PRIVATE_KEY,
+      {
+        expiresIn: "15d",
+        issuer: "Yongki Kim",
+      }
+    );
 
-      param.userID = row.userID;
-      param.refreshToken = refreshToken;
-      await this.repository.updateUserRefreshToken(param);
+    param.userID = row.userID;
+    param.refreshToken = refreshToken;
+    await this.repository.updateUserRefreshToken(param);
 
-      return Promise.resolve({
-        accessToken,
-        refreshToken,
-      });
-    } catch (err) {
-      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
-      return Promise.reject(err);
-    }
-  };
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
 
-  postResetPassword = async (param) => {
+  async postResetPassword(param) {
     const [row] = await this.repository.selectUserByEmail(param);
 
     if (!row) {
-      const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
-      err.statusCode = this.StatusCodes.BAD_REQUEST;
-      return Promise.reject(err);
+      const message = "요청하신 email 의 회원이 존재하지 않습니다.";
+      throw new HttpError(StatusCodes.BAD_REQUEST, message);
     }
-  };
+  }
 
-  putResetPassword = async (param) => {
-    const salt = (await this.randomBytes(this.bufLen)).toString("base64");
+  async putResetPassword(param) {
+    const salt = (await promisify(randomBytes)(this.bufLen)).toString("base64");
     const hashedPassword = (
-      await this.pbkdf2(
+      await promisify(pbkdf2)(
         param.password,
         salt,
         this.iterations,
@@ -119,35 +110,28 @@ module.exports = class UsersService {
     const { affectedRows } = await this.repository.updateUserPassword(param);
 
     if (!affectedRows) {
-      const err = new Error("요청하신 email 의 회원이 존재하지 않습니다.");
-      err.statusCode = this.StatusCodes.BAD_REQUEST;
-      return Promise.reject(err);
+      const message = "요청하신 email 의 회원이 존재하지 않습니다.";
+      throw new HttpError(StatusCodes.BAD_REQUEST, message);
     }
-  };
+  }
 
-  getAccessToken = async (param) => {
+  async getAccessToken(param) {
     const [row] = await this.repository.selectUserByID(param);
 
     if (row.refreshToken !== param.refreshToken) {
-      const err = new Error("재발급 토큰이 유효하지 않습니다.");
-      err.statusCode = this.StatusCodes.FORBIDDEN;
-      return Promise.reject(err);
+      const message = "재발급 토큰이 유효하지 않습니다.";
+      throw new HttpError(StatusCodes.FORBIDDEN, message);
     }
 
-    try {
-      const accessToken = await this.jwt.sign(
-        { userID: row.userID },
-        process.env.JWT_PRIVATE_KEY,
-        {
-          expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-          issuer: "Yongki Kim",
-        }
-      );
+    const accessToken = jwt.sign(
+      { userID: row.userID },
+      process.env.JWT_PRIVATE_KEY,
+      {
+        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+        issuer: "Yongki Kim",
+      }
+    );
 
-      return Promise.resolve(accessToken);
-    } catch (err) {
-      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
-      return Promise.reject(err);
-    }
-  };
+    return accessToken;
+  }
 };

@@ -1,20 +1,25 @@
+const { StatusCodes } = require("http-status-codes");
+const HttpError = require("../error/HttpError");
+const BooksRepository = require("../repositories/books.repository");
+const CartBooksRepository = require("../repositories/cart-books.repository");
+const OrdersRepository = require("../repositories/orders.repository");
+const database = require("../database");
+
 module.exports = class OrdersService {
-  constructor({ repositories, StatusCodes, database }) {
-    this.repositories = repositories;
-    this.StatusCodes = StatusCodes;
-    this.database = database;
-  }
+  repository = new OrdersRepository();
+  database = database;
 
   postOrder = async (param) => {
-    const { booksRepository, cartBooksRepository, ordersRepository } =
-      this.repositories;
-    const pool = await this.database.pool;
+    const booksRepository = new BooksRepository();
+    const cartBooksRepository = new CartBooksRepository();
+
+    const pool = this.database.pool;
     const conn = await pool.getConnection();
 
     try {
       await conn.beginTransaction();
 
-      const { insertId: deliveryID } = await ordersRepository.insertDelivery(
+      const { insertId: deliveryID } = await this.repository.insertDelivery(
         conn,
         param.delivery
       );
@@ -22,66 +27,59 @@ module.exports = class OrdersService {
       const { affectedRows } = await booksRepository.updateCount(conn, param);
 
       if (!affectedRows) {
-        const err = new Error("남은 수량이 존재하지 않습니다.");
-        err.statusCode = this.StatusCodes.NOT_FOUND;
-        return Promise.reject(err);
+        const message = "남은 수량이 존재하지 않습니다.";
+        throw new HttpError(StatusCodes.NOT_FOUND, message);
       }
 
       param.deliveryID = deliveryID;
+      param.bookIDs = param.books.map((book) => book.bookID);
       await Promise.allSettled([
-        ordersRepository.insertOrder(conn, param),
+        this.repository.insertOrder(conn, param),
         cartBooksRepository.deleteCartBooks(conn, param),
       ]);
 
       await conn.commit();
 
-      return Promise.resolve(this.StatusCodes.CREATED);
-    } catch (err) {
+      return StatusCodes.CREATED;
+    } catch (error) {
       await conn.rollback();
 
-      err.statusCode = this.StatusCodes.INTERNAL_SERVER_ERROR;
-      return Promise.reject(err);
+      throw error;
     } finally {
       await conn.release();
     }
   };
 
-  getOrders = async (param) => {
-    const { ordersRepository } = this.repositories;
-    const rows = await ordersRepository.selectOrders(param);
+  async getOrders(param) {
+    const rows = await this.repository.selectOrders(param);
 
     if (!rows.length) {
-      const err = new Error("주문이 존재하지 않습니다.");
-      err.statusCode = this.StatusCodes.NOT_FOUND;
-      return Promise.reject(err);
+      const message = "주문이 존재하지 않습니다.";
+      throw new HttpError(StatusCodes.NOT_FOUND, message);
     }
 
-    return Promise.resolve(rows);
-  };
+    return rows;
+  }
 
-  getOrdersDetail = async (param) => {
-    const { ordersRepository } = this.repositories;
-    const [row] = await ordersRepository.selectOrdersDetail(param);
+  async getOrdersDetail(param) {
+    const [row] = await this.repository.selectOrdersDetail(param);
 
     if (!row) {
-      const err = new Error("요청하신 deliveryID 의 주문이 존재하지 않습니다.");
-      err.statusCode = this.StatusCodes.NOT_FOUND;
-      return Promise.reject(err);
+      const message = "요청하신 deliveryID 의 주문이 존재하지 않습니다.";
+      throw new HttpError(StatusCodes.NOT_FOUND, message);
     }
 
-    return Promise.resolve(row.books);
-  };
+    return row.books;
+  }
 
-  deleteOrder = async (param) => {
-    const { ordersRepository } = this.repositories;
-    const { affectedRows } = await ordersRepository.deleteOrder(param);
+  async deleteOrder(param) {
+    const { affectedRows } = await this.repository.deleteOrder(param);
 
     if (!affectedRows) {
-      const err = new Error("이미 주문 취소 처리되었습니다.");
-      err.statusCode = this.StatusCodes.NOT_FOUND;
-      return Promise.reject(err);
+      const message = "이미 주문 취소 처리되었습니다.";
+      throw new HttpError(StatusCodes.NOT_FOUND, message);
     }
 
-    return Promise.resolve(this.StatusCodes.NO_CONTENT);
-  };
+    return StatusCodes.NO_CONTENT;
+  }
 };

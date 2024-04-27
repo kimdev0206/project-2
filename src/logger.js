@@ -1,10 +1,8 @@
 const debug = require("debug");
 
 class Logger {
-  constructor(debug) {
-    this.info = debug("log:info");
-    this.err = debug("log:err");
-  }
+  info = debug("log:info");
+  error = debug("log:error");
 }
 
-module.exports = new Logger(debug);
+module.exports = new Logger();
