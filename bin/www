@@ -1,18 +1,7 @@
-const http = require("node:http");
-const app = require("../app");
-const logger = require("../src/logger");
+const App = require("../app");
+const database = require("../src/database");
 
-const server = http.createServer(app).listen(3000);
-server.on("listening", onListening(server.address()));
-server.on("error", onError);
+const app = new App();
 
-function onListening(addr) {
-  return () => logger.info(`Listening on port ${addr.port}`);
-}
-
-function onError(err) {
-  if (err.code === "EADDRINUSE") {
-    logger.err(`Port ${3000} is already in use`);
-    process.exit(1);
-  }
-}
+app.listen();
+database.connect();

@@ -1,7 +1,30 @@
-module.exports = class BooksController {
-  constructor({ service, logger }) {
-    this.service = service;
-    this.logger = logger;
+const { Router } = require("express");
+const {
+  validateBooks,
+  validateError,
+  verifyAccessToken,
+  validateBookID,
+} = require("../middlewares");
+const BooksService = require("../services/books.service");
+
+class BooksController {
+  path = "/books";
+  router = Router();
+  service = new BooksService();
+
+  constructor() {
+    this.initRoutes();
+  }
+
+  initRoutes() {
+    this.router.get(this.path, validateBooks, validateError, this.getBooks);
+    this.router.get(
+      `${this.path}/:bookID`,
+      verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.getBook
+    );
   }
 
   getBooks = async (req, res, next) => {
@@ -27,8 +50,8 @@ module.exports = class BooksController {
         isSummary,
         isContents,
         isDetail,
-        limit: +limit,
-        page: +page,
+        limit,
+        page,
         keyword,
       };
       const { meta, data } = await this.service.getBooks(param);
@@ -37,8 +60,8 @@ module.exports = class BooksController {
         meta,
         data,
       });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   };
 
@@ -53,20 +76,10 @@ module.exports = class BooksController {
       res.json({
         data,
       });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   };
+}
 
-  getCategories = async (_, res, next) => {
-    try {
-      const data = await this.service.getCategories();
-
-      res.json({
-        data,
-      });
-    } catch (err) {
-      next(err);
-    }
-  };
-};
+module.exports = new BooksController();

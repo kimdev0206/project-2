@@ -1,44 +1,66 @@
-module.exports = class LikesController {
-  constructor({ service, logger }) {
-    this.service = service;
-    this.logger = logger;
+const { Router } = require("express");
+const {
+  validateBookID,
+  validateError,
+  verifyAccessToken,
+} = require("../middlewares");
+const LikesService = require("../services/likes.service");
+
+class LikesController {
+  path = "/likes";
+  router = Router();
+  service = new LikesService();
+
+  constructor() {
+    this.initRoutes();
   }
 
-  postLike = async (req, res) => {
+  initRoutes() {
+    this.router.post(
+      `${this.path}/:bookID`,
+      verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.postLike
+    );
+    this.router.delete(
+      `${this.path}/:bookID`,
+      verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.deleteLike
+    );
+  }
+
+  postLike = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
       const param = { userID, bookID };
-      const statusCode = await this.service.postLike(param);
+      const status = await this.service.postLike(param);
 
-      res.status(statusCode).json({
+      res.status(status).json({
         message: "좋아요 처리되었습니다.",
       });
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  deleteLike = async (req, res) => {
+  deleteLike = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
       const param = { userID, bookID };
-      const statusCode = await this.service.deleteLike(param);
+      const status = await this.service.deleteLike(param);
 
-      res.status(statusCode).end();
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+      res.status(status).end();
+    } catch (error) {
+      next(error);
     }
   };
-};
+}
+
+module.exports = new LikesController();

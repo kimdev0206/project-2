@@ -1,7 +1,39 @@
-module.exports = class OrdersController {
-  constructor({ service, logger }) {
-    this.service = service;
-    this.logger = logger;
+const { Router } = require("express");
+const {
+  verifyAccessToken,
+  validateError,
+  validateOrder,
+} = require("../middlewares");
+const OrdersService = require("../services/orders.service");
+
+class OrdersController {
+  path = "/orders";
+  router = Router();
+  service = new OrdersService();
+
+  constructor() {
+    this.initRoutes();
+  }
+
+  initRoutes() {
+    this.router.post(
+      this.path,
+      verifyAccessToken,
+      validateOrder,
+      validateError,
+      this.postOrder
+    );
+    this.router.get(this.path, verifyAccessToken, this.getOrders);
+    this.router.get(
+      `${this.path}/:deliveryID`,
+      verifyAccessToken,
+      this.getOrdersDetail
+    );
+    this.router.delete(
+      `${this.path}/:deliveryID`,
+      verifyAccessToken,
+      this.deleteOrder
+    );
   }
 
   postOrder = async (req, res, next) => {
@@ -18,15 +50,15 @@ module.exports = class OrdersController {
         totalCount,
         totalPrice,
       };
-      const statusCode = await this.service.postOrder(param);
+      const status = await this.service.postOrder(param);
 
-      res.status(statusCode).json({
+      res.status(status).json({
         message: "주문 처리되었습니다.",
       });
-    } catch (err) {
+    } catch (error) {
       res.locals.name = this.postOrder.name;
 
-      next(err);
+      next(error);
     }
   };
 
@@ -40,10 +72,10 @@ module.exports = class OrdersController {
       res.json({
         data,
       });
-    } catch (err) {
+    } catch (error) {
       res.locals.name = this.getOrders.name;
 
-      next(err);
+      next(error);
     }
   };
 
@@ -58,10 +90,10 @@ module.exports = class OrdersController {
       res.json({
         data,
       });
-    } catch (err) {
+    } catch (error) {
       res.locals.name = this.getOrdersDetail.name;
 
-      next(err);
+      next(error);
     }
   };
 
@@ -71,13 +103,15 @@ module.exports = class OrdersController {
       const { deliveryID } = req.params;
 
       const param = { userID, deliveryID };
-      const statusCode = await this.service.deleteOrder(param);
+      const status = await this.service.deleteOrder(param);
 
-      res.status(statusCode).end();
-    } catch (err) {
+      res.status(status).end();
+    } catch (error) {
       res.locals.name = this.deleteOrder.name;
 
-      next(err);
+      next(error);
     }
   };
-};
+}
+
+module.exports = new OrdersController();

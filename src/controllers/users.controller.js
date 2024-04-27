@@ -1,29 +1,58 @@
-module.exports = class UsersController {
-  constructor({ service, logger }) {
-    this.service = service;
-    this.logger = logger;
+const { Router } = require("express");
+const {
+  verifyRefreshToken,
+  validateUser,
+  validateError,
+} = require("../middlewares");
+const UsersService = require("../services/users.service");
+
+class UsersController {
+  path = "/users";
+  router = Router();
+  service = new UsersService();
+
+  constructor() {
+    this.initRoutes();
   }
 
-  signUp = async (req, res) => {
+  initRoutes() {
+    this.router.post(`${this.path}/reset-password`, this.postResetPassword);
+    this.router.put(`${this.path}/reset-password`, this.putResetPassword);
+    this.router.get(
+      `${this.path}/access-token`,
+      verifyRefreshToken,
+      this.getAccessToken
+    );
+    this.router.post(
+      `${this.path}/sign-up`,
+      validateUser,
+      validateError,
+      this.signUp
+    );
+    this.router.post(
+      `${this.path}/log-in`,
+      validateUser,
+      validateError,
+      this.logIn
+    );
+  }
+
+  signUp = async (req, res, next) => {
     try {
       const { email, password } = req.body;
 
       const param = { email, password };
-      const statusCode = await this.service.signUp(param);
+      const status = await this.service.signUp(param);
 
-      res.status(statusCode).json({
+      res.status(status).json({
         message: "회원가입 되었습니다.",
       });
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  logIn = async (req, res) => {
+  logIn = async (req, res, next) => {
     try {
       const { email, password } = req.body;
 
@@ -35,16 +64,12 @@ module.exports = class UsersController {
       res.json({
         message: "로그인 되었습니다.",
       });
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  postResetPassword = async (req, res) => {
+  postResetPassword = async (req, res, next) => {
     try {
       const { email } = req.body;
 
@@ -55,16 +80,12 @@ module.exports = class UsersController {
         message: "비밀번호 초기화가 요청 되었습니다.",
         email,
       });
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  putResetPassword = async (req, res) => {
+  putResetPassword = async (req, res, next) => {
     try {
       const { email, password } = req.body;
 
@@ -74,16 +95,12 @@ module.exports = class UsersController {
       res.json({
         message: "비밀번호 초기화 되었습니다.",
       });
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  getAccessToken = async (req, res) => {
+  getAccessToken = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const refreshToken = req.headers["refresh-token"];
@@ -95,12 +112,10 @@ module.exports = class UsersController {
       res.json({
         message: "접근 토큰이 재발급 되었습니다.",
       });
-    } catch (err) {
-      this.logger.err(err.message);
-
-      res.status(err.statusCode).json({
-        message: err.message,
-      });
+    } catch (error) {
+      next(error);
     }
   };
-};
+}
+
+module.exports = new UsersController();
