@@ -54,7 +54,8 @@ module.exports = class CartBooksRepository {
         b.title,
         b.summary,
         cb.count,
-        b.price
+        b.price,
+        b.author
       FROM
         books AS b
       LEFT JOIN
