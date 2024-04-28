@@ -1,7 +1,6 @@
 {
-  "name": "project-2-repo",
-  "version": "1.0.0",
-  "description": "",
+  "name": "project-2",
+  "version": "1.0.0",  
   "main": "./bin/www",
   "scripts": {
     "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www"

@@ -3,8 +3,8 @@ const logger = require("../logger");
 
 module.exports = function error(error, req, res, _) {
   let log = [
-    error.message,
-    `with userID (${req.decodedToken && req.decodedToken.userID})`,
+    error,
+    req.decodedToken && `with userID (${req.decodedToken.userID})`,
     `at ${new Date().toLocaleString()}`,
   ];
 
