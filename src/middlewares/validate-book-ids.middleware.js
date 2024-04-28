@@ -8,8 +8,9 @@ module.exports = async function validateBookIDs(req, _, next) {
     .body("bookIDs")
     .isArray({ min: 1 })
     .withMessage(emptyMessage)
-    .isNumeric()
+    .isInt({ gt: 0, allow_leading_zeroes: false })
     .withMessage(invalidateMessage);
+  // NOTE: 배열 안에 기본형 요소를 형변환 할 수 없습니다.
 
   await validation.run(req);
 

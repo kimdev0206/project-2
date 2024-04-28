@@ -18,12 +18,33 @@ module.exports = async function validateOrder(req, _, next) {
       .notEmpty()
       .withMessage(emptyMessage)
       .isInt({ gt: 0, allow_leading_zeroes: false })
-      .withMessage(invalidateMessage),
+      .withMessage(invalidateMessage)
+      .customSanitizer((value) => Number(value)),
     validator
       .body("books.*.count")
       .notEmpty()
       .withMessage(emptyMessage)
       .isInt({ gt: 0, allow_leading_zeroes: false })
+      .withMessage(invalidateMessage)
+      .customSanitizer((value) => Number(value)),
+    validator
+      .body("books.*.price")
+      .notEmpty()
+      .withMessage(emptyMessage)
+      .isInt({ gt: -1, allow_leading_zeroes: false })
+      .withMessage(invalidateMessage)
+      .customSanitizer((value) => Number(value)),
+    validator
+      .body("books.*.title")
+      .notEmpty()
+      .withMessage(emptyMessage)
+      .isString()
+      .withMessage(invalidateMessage),
+    validator
+      .body("books.*.author")
+      .notEmpty()
+      .withMessage(emptyMessage)
+      .isString()
       .withMessage(invalidateMessage),
 
     validator.body("delivery").isObject().withMessage(emptyMessage),
@@ -51,14 +72,16 @@ module.exports = async function validateOrder(req, _, next) {
       .notEmpty()
       .withMessage(emptyMessage)
       .isInt({ gt: 0, allow_leading_zeroes: false })
-      .withMessage(invalidateMessage),
+      .withMessage(invalidateMessage)
+      .customSanitizer((value) => Number(value)),
 
     validator
       .body("totalPrice")
       .notEmpty()
       .withMessage(emptyMessage)
       .isInt({ gt: -1, allow_leading_zeroes: false })
-      .withMessage(invalidateMessage),
+      .withMessage(invalidateMessage)
+      .customSanitizer((value) => Number(value)),
   ];
 
   await Promise.all(validations.map((validation) => validation.run(req)));

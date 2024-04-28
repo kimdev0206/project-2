@@ -51,7 +51,7 @@ module.exports = async function validateBooks(req, _, next) {
       .query("limit")
       .notEmpty()
       .withMessage(emptyMessage)
-      .isInt({ allow_leading_zeroes: false })
+      .isInt({ gt: 0, allow_leading_zeroes: false })
       .withMessage(invalidateMessage)
       .customSanitizer((value) => Number(value)),
     validator

@@ -16,8 +16,9 @@ module.exports = async function validateCartBook(req, _, next) {
       .body("count")
       .notEmpty()
       .withMessage(emptyMessage)
-      .isNumeric()
-      .withMessage(invalidateMessage),
+      .isInt({ gt: 0, allow_leading_zeroes: false })
+      .withMessage(invalidateMessage)
+      .customSanitizer((value) => Number(value)),
   ];
 
   await Promise.all(validations.map((validation) => validation.run(req)));
