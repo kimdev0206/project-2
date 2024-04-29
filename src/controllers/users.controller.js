@@ -59,7 +59,7 @@ class UsersController {
       const param = { email, password };
       const { accessToken, refreshToken } = await this.service.logIn(param);
 
-      res.header("Authorization", accessToken);
+      res.header("Access-Token", accessToken);
       res.header("Refresh-Token", refreshToken);
       res.json({
         message: "로그인 되었습니다.",
@@ -108,7 +108,7 @@ class UsersController {
       const param = { userID, refreshToken };
       const accessToken = await this.service.getAccessToken(param);
 
-      res.header("Authorization", accessToken);
+      res.header("Access-Token", accessToken);
       res.json({
         message: "접근 토큰이 재발급 되었습니다.",
       });

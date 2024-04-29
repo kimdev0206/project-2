@@ -1,0 +1,6 @@
+../.git/*
+../bin/www
+../build/*
+../.env
+../.gitignore
+../README.md

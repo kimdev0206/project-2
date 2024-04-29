@@ -23,7 +23,7 @@ module.exports = class App {
   initPreMiddlewares() {
     const corsOptions = {
       origin: process.env.GUEST,
-      exposedHeaders: ["Authorization", "Refresh-Token"],
+      exposedHeaders: ["Access-Token", "Refresh-Token"],
       credentials: true,
     };
 
