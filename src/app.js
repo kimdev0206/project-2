@@ -1,11 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const controllers = require("./src/controllers");
-const {
-  log: logMiddleware,
-  error: errorMiddleware,
-} = require("./src/middlewares");
-const logger = require("./src/logger");
+const controllers = require("./controllers");
+const { logMiddleware, errorMiddleware } = require("./middlewares");
+const logger = require("./logger");
 
 module.exports = class App {
   app = express();

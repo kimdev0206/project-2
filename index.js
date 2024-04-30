@@ -1,5 +1,5 @@
 const serverless = require("serverless-http");
-const App = require("./app");
+const App = require("./src/app");
 const database = require("./src/database");
 
 const app = new App();

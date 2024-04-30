@@ -1,5 +1,5 @@
-const error = require("./error.middleware");
-const log = require("./log.middleware");
+const errorMiddleware = require("./error.middleware");
+const logMiddleware = require("./log.middleware");
 const validateBookID = require("./validate-book-id.middleware");
 const validateBookIDs = require("./validate-book-ids.middleware");
 const validateBooks = require("./validate-books.middleware");
@@ -11,8 +11,8 @@ const verifyAccessToken = require("./verify-access-token.middleware");
 const verifyRefreshToken = require("./verify-refresh-token.middleware");
 
 module.exports = {
-  error,
-  log,
+  errorMiddleware,
+  logMiddleware,
   validateBookID,
   validateBookIDs,
   validateBooks,
