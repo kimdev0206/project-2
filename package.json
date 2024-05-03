@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "main": "./bin/www",
   "scripts": {
-    "dev": "set NODE_ENV=development & set DEBUG=log:* & node --watch --env-file=.env ./bin/www"
+    "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www",
+    "data:insert-orders": "node --env-file=.env scripts/insert-orders/index.js"
   },
   "author": "Yongki Kim",
   "license": "ISC",
-  "devDependencies": {
-    "@faker-js/faker": "^8.4.1"
-  },
   "dependencies": {
     "cors": "^2.8.5",
     "debug": "^4.3.4",
@@ -21,6 +19,7 @@
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "serverless": "^3.38.0"
   }
 }

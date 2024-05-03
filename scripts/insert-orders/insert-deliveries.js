@@ -1,35 +1,36 @@
-module.exports = class InsertDeliveries {
-  constructor({ faker, deliverySize }) {
-    const deliveryIDs = Array.from(
-      { length: deliverySize },
-      (_, index) => index + 1
-    );
+const { fakerKO: faker } = require("@faker-js/faker");
+const { makeIDs } = require("../utils");
 
-    const values = deliveryIDs.map((deliveryID) => [
+module.exports = class InsertDeliveries {
+  static size = 100;
+
+  static makeValues() {
+    const deliveryIDs = makeIDs(this.size);
+
+    return deliveryIDs.map((deliveryID) => [
       deliveryID,
       faker.location.streetAddress({ useFullAddress: true }),
       `${faker.person.lastName()}${faker.person.firstName()}`,
       faker.phone.number(),
     ]);
-
-    this.values = values;
   }
 
-  run = async ({ conn }) => {
+  static async run(conn) {
     const query = `
-      INSERT INTO deliveries
+      INSERT INTO 
+        deliveries
         (
           id,
-          address, 
-          receiver, 
+          address,
+          receiver,
           contact
         )
-      VALUES    
+      VALUES
         ?;
     `;
 
-    const values = this.values;
+    const values = this.makeValues();
     const [result] = await conn.query(query, [values]);
     return result;
-  };
+  }
 };

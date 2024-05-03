@@ -1,14 +1,17 @@
+const InsertBooks = require("./insert-books");
+const InsertDeliveries = require("./insert-deliveries");
+const InsertOrders = require("./insert-orders");
+const InsertUsers = require("./insert-users");
 const database = require("../../src/database");
-const modules = require("../modules");
 
-async function run({ conn }) {
+async function run(conn) {
   const [users, books, deliveries] = await Promise.all([
-    modules.insertUsers.run({ conn }),
-    modules.insertBooks.run({ conn }),
-    modules.insertDeliveries.run({ conn }),
+    InsertUsers.run(conn),
+    InsertBooks.run(conn),
+    InsertDeliveries.run(conn),
   ]);
 
-  const orders = await modules.insertOrders.run({ conn });
+  const orders = await InsertOrders.run(conn);
 
   return {
     usersRows: users.affectedRows,
@@ -19,15 +22,16 @@ async function run({ conn }) {
 }
 
 (async function () {
-  const pool = await database.pool;
+  const pool = database.pool;
   const conn = await pool.getConnection();
 
   try {
     await conn.beginTransaction();
 
-    const { usersRows, booksRows, deliveriesRows, ordersRows } = await run({
-      conn,
-    });
+    const { usersRows, booksRows, deliveriesRows, ordersRows } = await run(
+      conn
+    );
+
     await conn.commit();
 
     console.log(`users 테이블에 ${usersRows} 개의 레코드가 추가되었습니다.`);
@@ -36,10 +40,10 @@ async function run({ conn }) {
       `deliveries 테이블에 ${deliveriesRows} 개의 레코드가 추가되었습니다.`
     );
     console.log(`orders 테이블에 ${ordersRows} 개의 레코드가 추가되었습니다.`);
-  } catch (err) {
+  } catch (error) {
     await conn.rollback();
 
-    console.error(err.message);
+    console.error(error.message);
   } finally {
     await pool.end();
   }

@@ -1,18 +1,21 @@
-module.exports = class InsertUsers {
-  constructor({ faker, userSize }) {
-    const userIDs = Array.from({ length: userSize }, (_, index) => index + 1);
+const { fakerKO: faker } = require("@faker-js/faker");
+const { makeIDs } = require("../utils");
 
-    const values = userIDs.map((userID) => [
+module.exports = class InsertUsers {
+  static size = 10;
+
+  static makeValues() {
+    const userIDs = makeIDs(this.size);
+
+    return userIDs.map((userID) => [
       userID,
       faker.internet.email(),
       faker.internet.password({ length: 24 }),
       faker.internet.password({ length: 24 }),
     ]);
-
-    this.values = values;
   }
 
-  run = async ({ conn }) => {
+  static async run(conn) {
     const query = `
       INSERT INTO users
         (
@@ -25,8 +28,8 @@ module.exports = class InsertUsers {
         ?;
     `;
 
-    const values = this.values;
+    const values = this.makeValues();
     const [result] = await conn.query(query, [values]);
     return result;
-  };
+  }
 };

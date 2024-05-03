@@ -1,25 +1,16 @@
-function categoryIDIterator(A) {
-  let index = 0;
-
-  return () => {
-    const id = A[index];
-    index = (index + 1) % A.length;
-
-    return id;
-  };
-}
+const { fakerKO: faker } = require("@faker-js/faker");
+const { makeIDs, makeIDIterator } = require("../utils");
 
 module.exports = class InsertBooks {
-  constructor({ faker, bookSize, categorySize }) {
-    const bookIDs = Array.from({ length: bookSize }, (_, index) => index + 1);
+  static size = 1000;
+  static categorySize = 3;
 
-    const categoryIDs = Array.from(
-      { length: categorySize },
-      (_, index) => index + 1
-    );
-    const getCategoryID = categoryIDIterator(categoryIDs);
+  static makeValues() {
+    const bookIDs = makeIDs(this.size);
+    const categoryIDs = makeIDs(this.categorySize);
+    const getCategoryID = makeIDIterator(categoryIDs);
 
-    const values = bookIDs.map((bookID) => [
+    return bookIDs.map((bookID) => [
       bookID,
       faker.lorem.words(),
       getCategoryID(),
@@ -32,13 +23,12 @@ module.exports = class InsertBooks {
       faker.number.int({ min: 1, max: 1_000 }),
       faker.lorem.lines({ max: 100 }),
       faker.commerce.price({ dec: 0, min: 1_000 }),
+      faker.helpers.rangeToNumber({ min: 10, max: 100 }),
       faker.date.past(),
     ]);
-
-    this.values = values;
   }
 
-  run = async ({ conn }) => {
+  static async run(conn) {
     const query = `
       INSERT INTO books
         (
@@ -54,14 +44,15 @@ module.exports = class InsertBooks {
           pages,
           contents,
           price,
+          count,
           pub_date
         )
       VALUES
         ?;
     `;
 
-    const values = this.values;
+    const values = this.makeValues();
     const [result] = await conn.query(query, [values]);
     return result;
-  };
+  }
 };

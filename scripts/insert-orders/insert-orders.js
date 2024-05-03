@@ -1,40 +1,31 @@
-function iterator(A) {
-  let index = 0;
-
-  return () => {
-    const id = A[index];
-    index = (index + 1) % A.length;
-
-    return id;
-  };
-}
+const { fakerKO: faker } = require("@faker-js/faker");
+const InsertBooks = require("./insert-books");
+const InsertDeliveries = require("./insert-deliveries");
+const InsertUsers = require("./insert-users");
+const { makeIDs, makeIDIterator } = require("../utils");
 
 module.exports = class InsertOrders {
-  constructor({ faker, deliverySize, userSize, bookSize }) {
-    const deliveryIDs = Array.from(
-      { length: deliverySize },
-      (_, index) => index + 1
+  static makeValues() {
+    const deliveryIDs = makeIDs(InsertDeliveries.size);
+
+    const userIDs = makeIDs(InsertUsers.size).flatMap((userID) =>
+      Array(InsertUsers.size).fill(userID)
     );
+    const getUserID = makeIDIterator(userIDs);
 
-    const userIDs = Array.from(
-      { length: userSize },
-      (_, index) => index + 1
-    ).flatMap((userID) => Array(userSize).fill(userID));
-    const getUserID = iterator(userIDs);
+    const bookDetailSize = 10;
+    const getBookDetailSize = makeIDIterator(makeIDs(bookDetailSize));
 
-    const bookDetailSizes = Array.from({ length: 10 }, (_, index) => index + 1);
-    const getBookDetailSize = iterator(bookDetailSizes);
-
-    const getBooks = (length) =>
-      Array.from({ length }, () => ({
-        bookID: faker.helpers.rangeToNumber({ min: 1, max: bookSize }),
+    const getBooks = (size) =>
+      Array.from({ length: size }, () => ({
+        bookID: faker.helpers.rangeToNumber({ min: 1, max: InsertBooks.size }),
         title: faker.lorem.words(),
         author: `${faker.person.lastName()}${faker.person.firstName()}`,
         price: faker.commerce.price({ dec: 0, min: 1_000, max: 10_000 }),
         count: faker.helpers.rangeToNumber({ min: 1, max: 10 }),
       }));
 
-    const values = deliveryIDs.map((deliveryID) => {
+    return deliveryIDs.map((deliveryID) => {
       const books = getBooks(getBookDetailSize());
 
       let totalCount = 0;
@@ -44,7 +35,7 @@ module.exports = class InsertOrders {
         const book = books[i];
 
         totalCount += book.count;
-        totalPrice += +book.price * book.count;
+        totalPrice += Number(book.price) * book.count;
       }
 
       return [
@@ -56,13 +47,12 @@ module.exports = class InsertOrders {
         totalPrice,
       ];
     });
-
-    this.values = values;
   }
 
-  run = async ({ conn }) => {
+  static async run(conn) {
     const query = `
-      INSERT INTO orders
+      INSERT INTO 
+        orders
         (
           user_id,
           delivery_id,
@@ -75,8 +65,8 @@ module.exports = class InsertOrders {
         ?;
     `;
 
-    const values = this.values;
+    const values = this.makeValues();
     const [result] = await conn.query(query, [values]);
     return result;
-  };
+  }
 };
