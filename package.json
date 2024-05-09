@@ -1,13 +1,15 @@
 {
   "name": "project-2",
-  "version": "1.0.0",
+  "author": "Yongki Kim",
+  "license": "ISC",
   "main": "./bin/www",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www",
     "data:insert-orders": "node --env-file=.env scripts/insert-orders/index.js"
   },
-  "author": "Yongki Kim",
-  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "debug": "^4.3.4",
