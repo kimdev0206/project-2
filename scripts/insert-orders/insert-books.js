@@ -22,7 +22,7 @@ module.exports = class InsertBooks {
       `${faker.person.lastName()}${faker.person.firstName()}`,
       faker.number.int({ min: 1, max: 1_000 }),
       faker.lorem.lines({ max: 100 }),
-      faker.commerce.price({ dec: 0, min: 1_000 }),
+      faker.commerce.price({ dec: 0, min: 1_000, max: 10_000 }),
       faker.helpers.rangeToNumber({ min: 10, max: 100 }),
       faker.date.past(),
     ]);

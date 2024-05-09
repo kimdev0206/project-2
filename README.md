@@ -9,3 +9,7 @@
 ## [ERD (링크)](https://dbdocs.io/kimdev0206/project-2?view=relationships)
 
 링크를 확인해주세요.
+
+## 시스템 설계도
+
+![](./assets//image.drawio.png)
