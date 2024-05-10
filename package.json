@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www",
-    "data:insert-orders": "node --env-file=.env scripts/insert-orders/index.js"
+    "data:orders": "node --env-file=.env scripts/insert-orders/index.js",
+    "data:images": "node --env-file=.env --experimental-fetch scripts/insert-images/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -21,6 +22,7 @@
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.572.0",
     "@faker-js/faker": "^8.4.1",
     "serverless": "^3.38.0"
   }

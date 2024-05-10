@@ -3,8 +3,12 @@ module.exports = {
   makeIDIterator,
 };
 
-function makeIDs(size) {
-  return Array.from({ length: size }, (_, index) => index + 1);
+function makeIDs(end, start = 1) {
+  let IDs = [];
+
+  for (let i = start; i <= end; i += 1) IDs.push(i);
+
+  return IDs;
 }
 
 function makeIDIterator(array) {
