@@ -168,6 +168,23 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
+        ROUND(b.price - b.price * (
+          SELECT	
+            MAX(p.discount_rate) AS discountRate
+          FROM
+            promotions AS p
+          JOIN
+            applied_promotions AS ap
+            ON p.id = ap.promotion_id
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND user_id = ?
+            AND book_id = ?
+        )) AS discountedPrice,
         b.count,
         (
           SELECT
@@ -198,7 +215,7 @@ module.exports = class BooksRepository {
         b.id = ?;
     `;
 
-    const values = [param.userID, param.bookID];
+    const values = [param.userID, param.bookID, param.userID, param.bookID];
     const [result] = await pool.query(query, values);
     return result;
   }

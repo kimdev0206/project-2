@@ -1,6 +1,7 @@
 ../.git/*
 ../bin/www
 ../build/*
+../scripts/*
 ../.env
 ../.gitignore
 ../README.md
