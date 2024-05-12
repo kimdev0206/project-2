@@ -168,7 +168,7 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
-        ROUND(b.price - b.price * (
+        CONVERT(ROUND(b.price - b.price * (
           SELECT	
             MAX(p.discount_rate) AS discountRate
           FROM
@@ -184,7 +184,7 @@ module.exports = class BooksRepository {
             )
             AND user_id = ?
             AND book_id = ?
-        )) AS discountedPrice,
+        )), SIGNED) AS discountedPrice,
         b.count,
         (
           SELECT
