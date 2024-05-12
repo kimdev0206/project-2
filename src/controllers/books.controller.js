@@ -19,8 +19,14 @@ class BooksController {
   initRoutes() {
     this.router.get(this.path, validateBooks, validateError, this.getBooks);
     this.router.get(
-      `${this.path}/:bookID`,
+      `${this.path}/:bookID/authorized`,
       verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.getBookWithAuthorize
+    );
+    this.router.get(
+      `${this.path}/:bookID`,
       validateBookID,
       validateError,
       this.getBook
@@ -66,6 +72,21 @@ class BooksController {
   };
 
   getBook = async (req, res, next) => {
+    try {
+      const { bookID } = req.params;
+
+      const param = { bookID };
+      const data = await this.service.getBook(param);
+
+      res.json({
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBookWithAuthorize = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;

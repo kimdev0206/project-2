@@ -168,6 +168,47 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
+        b.count,
+        (
+          SELECT
+            COUNT(*)
+          FROM
+            likes
+          WHERE
+            liked_book_id = b.id
+        ) AS likes,
+        b.pub_date AS pubDate
+      FROM
+        categories AS c
+      JOIN
+        books AS b
+        ON c.id = b.category_id
+      WHERE
+        b.id = ?;
+    `;
+
+    const values = [param.bookID];
+    const [result] = await pool.query(query, values);
+    return result;
+  }
+
+  async selectBookWithAuthorize(param) {
+    const pool = this.database.pool;
+    const query = `
+      SELECT
+        b.id,
+        b.title,
+        c.id AS categoryID,
+        c.category,
+        b.img_id AS imgID,
+        b.form,
+        b.isbn,
+        b.summary,
+        b.detail,
+        b.author,
+        b.pages,
+        b.contents,
+        b.price,
         CONVERT(ROUND(b.price - b.price * (
           SELECT	
             MAX(p.discount_rate) AS discountRate

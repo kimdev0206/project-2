@@ -23,7 +23,11 @@ module.exports = class BooksService {
   }
 
   async getBook(param) {
-    const [row] = await this.repository.selectBook(param);
+    if (!param.userID) {
+      var [row] = await this.repository.selectBook(param);
+    } else {
+      var [row] = await this.repository.selectBookWithAuthorize(param);
+    }
 
     if (!row) {
       const message = "요청하신 bookID 의 도서가 존재하지 않습니다.";
