@@ -14,36 +14,20 @@ module.exports = class BooksRepository {
         b.author,
         b.price,
         CONVERT(ROUND(b.price - b.price * (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
-            (
-              p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND b.category_id = pc.category_id
+            b.category_id = ap.category_id
         )), SIGNED) AS discountedPrice,
         (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
-            (
-              p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND b.category_id = pc.category_id
+            b.category_id = ap.category_id
         ) AS discountRate,
         (
           SELECT
@@ -130,47 +114,25 @@ module.exports = class BooksRepository {
         b.author,
         b.price,
         CONVERT(ROUND(b.price - b.price * (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          LEFT JOIN
-            promotion_users AS pu
-            ON p.id = pu.promotion_id
-          LEFT JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
             (
-              p.start_at IS NULL
-              OR NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND
-            (
-              pu.user_id = ?
-              OR b.category_id = pc.category_id
+              ap.user_id = ?
+              OR b.category_id = ap.category_id
             )
         )), SIGNED) AS discountedPrice,
         (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          LEFT JOIN
-            promotion_users AS pu
-            ON p.id = pu.promotion_id
-          LEFT JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
             (
-              p.start_at IS NULL
-              OR NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND
-            (
-              pu.user_id = ?
-              OR b.category_id = pc.category_id
+              ap.user_id = ?
+              OR b.category_id = ap.category_id
             )
         ) AS discountRate,
         (
@@ -327,34 +289,20 @@ module.exports = class BooksRepository {
         b.contents,
         b.price,
         CONVERT(ROUND(b.price - b.price * (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
-            (
-              p.start_at IS NULL
-              OR NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND b.category_id = pc.category_id
+            b.category_id = ap.category_id
         )), SIGNED) AS discountedPrice,
         (
-        	SELECT	
-            MAX(p.discount_rate)
+        	SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
-            (
-              p.start_at IS NULL
-              OR NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND b.category_id = pc.category_id
+            b.category_id = ap.category_id
         ) AS discountRate,
         b.count,
         (
@@ -398,47 +346,25 @@ module.exports = class BooksRepository {
         b.contents,
         b.price,
         CONVERT(ROUND(b.price - b.price * (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          LEFT JOIN
-            promotion_users AS pu
-            ON p.id = pu.promotion_id
-          LEFT JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
             (
-              p.start_at IS NULL
-              OR NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND
-            (
-              pu.user_id = ?
-              OR b.category_id = pc.category_id
+              ap.user_id = ?
+              OR b.category_id = ap.category_id
             )
         )), SIGNED) AS discountedPrice,
         (
-          SELECT	
-            MAX(p.discount_rate)
+          SELECT
+            MAX(ap.discount_rate)
           FROM
-            promotions AS p
-          LEFT JOIN
-            promotion_users AS pu
-            ON p.id = pu.promotion_id
-          LEFT JOIN
-            promotion_categories AS pc
-            ON p.id = pc.promotion_id
+            active_promotions AS ap
           WHERE
             (
-              p.start_at IS NULL
-              OR NOW() BETWEEN p.start_at AND p.end_at
-            )
-            AND
-            (
-              pu.user_id = ?
-              OR b.category_id = pc.category_id
+              ap.user_id = ?
+              OR b.category_id = ap.category_id
             )
         ) AS discountRate,
         b.count,
@@ -471,14 +397,7 @@ module.exports = class BooksRepository {
         b.id = ?;
     `;
 
-    const values = [
-      param.userID,
-      param.bookID,
-      param.userID,
-      param.bookID,
-      param.userID,
-      param.bookID,
-    ];
+    const values = [param.userID, param.userID, param.userID, param.bookID];
     const [result] = await pool.query(query, values);
     return result;
   }
