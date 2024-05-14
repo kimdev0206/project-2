@@ -1,17 +1,15 @@
 INSERT INTO
-	applied_promotions
+	promotion_categories
 	(
 		promotion_id,
-		user_id,
+		category_id,
 		book_id
 	)
 SELECT
 	1 AS promotion_id,
-	u.id,
+	b.category_id,
 	b.id
 FROM
-	users AS u
-CROSS JOIN
 	books AS b
 WHERE
 	b.category_id = 1;

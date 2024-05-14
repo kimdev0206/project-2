@@ -18,26 +18,32 @@ module.exports = class BooksRepository {
             MAX(p.discount_rate)
           FROM
             promotions AS p
+          JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
               OR 
               NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND p.is_user = 0
+            AND b.category_id = pc.category_id
         )), SIGNED) AS discountedPrice,
         (
           SELECT	
             MAX(p.discount_rate)
           FROM
             promotions AS p
+          JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
               OR 
               NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND p.is_user = 0
+            AND b.category_id = pc.category_id
         ) AS discountRate,
         (
           SELECT
@@ -128,34 +134,44 @@ module.exports = class BooksRepository {
             MAX(p.discount_rate)
           FROM
             promotions AS p
-          JOIN
-            applied_promotions AS ap
-            ON p.id = ap.promotion_id
+          LEFT JOIN
+            promotion_users AS pu
+            ON p.id = pu.promotion_id
+          LEFT JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
+              OR NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND user_id = ?
-            AND book_id = b.id
+            AND
+            (
+              pu.user_id = ?
+              OR b.category_id = pc.category_id
+            )
         )), SIGNED) AS discountedPrice,
         (
           SELECT	
             MAX(p.discount_rate)
           FROM
             promotions AS p
-          JOIN
-            applied_promotions AS ap
-            ON p.id = ap.promotion_id
+          LEFT JOIN
+            promotion_users AS pu
+            ON p.id = pu.promotion_id
+          LEFT JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
+              OR NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND user_id = ?
-            AND book_id = b.id
+            AND
+            (
+              pu.user_id = ?
+              OR b.category_id = pc.category_id
+            )
         ) AS discountRate,
         (
           SELECT
@@ -315,26 +331,30 @@ module.exports = class BooksRepository {
             MAX(p.discount_rate)
           FROM
             promotions AS p
+          JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
+              OR NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND p.is_user = 0
+            AND b.category_id = pc.category_id
         )), SIGNED) AS discountedPrice,
         (
         	SELECT	
             MAX(p.discount_rate)
           FROM
             promotions AS p
+          JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
+              OR NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND p.is_user = 0
+            AND b.category_id = pc.category_id
         ) AS discountRate,
         b.count,
         (
@@ -382,34 +402,44 @@ module.exports = class BooksRepository {
             MAX(p.discount_rate)
           FROM
             promotions AS p
-          JOIN
-            applied_promotions AS ap
-            ON p.id = ap.promotion_id
+          LEFT JOIN
+            promotion_users AS pu
+            ON p.id = pu.promotion_id
+          LEFT JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
+              OR NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND user_id = ?
-            AND book_id = ?
+            AND
+            (
+              pu.user_id = ?
+              OR b.category_id = pc.category_id
+            )
         )), SIGNED) AS discountedPrice,
         (
           SELECT	
             MAX(p.discount_rate)
           FROM
             promotions AS p
-          JOIN
-            applied_promotions AS ap
-            ON p.id = ap.promotion_id
+          LEFT JOIN
+            promotion_users AS pu
+            ON p.id = pu.promotion_id
+          LEFT JOIN
+            promotion_categories AS pc
+            ON p.id = pc.promotion_id
           WHERE
             (
               p.start_at IS NULL
-              OR 
-              NOW() BETWEEN p.start_at AND p.end_at
+              OR NOW() BETWEEN p.start_at AND p.end_at
             )
-            AND user_id = ?
-            AND book_id = ?
+            AND
+            (
+              pu.user_id = ?
+              OR b.category_id = pc.category_id
+            )
         ) AS discountRate,
         b.count,
         (
