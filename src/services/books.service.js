@@ -7,7 +7,12 @@ module.exports = class BooksService {
 
   async getBooks(param) {
     param.offset = (param.page - 1) * param.limit;
-    const rows = await this.repository.selectBooks(param);
+
+    if (!param.userID) {
+      var rows = await this.repository.selectBooks(param);
+    } else {
+      var rows = await this.repository.selectBooksWithAuthorize(param);
+    }
 
     if (!rows.length) {
       const message = "도서가 존재하지 않습니다.";

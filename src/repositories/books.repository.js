@@ -13,6 +13,32 @@ module.exports = class BooksRepository {
         b.summary,
         b.author,
         b.price,
+        CONVERT(ROUND(b.price - b.price * (
+          SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND p.is_user = 0
+        )), SIGNED) AS discountedPrice,
+        (
+          SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND p.is_user = 0
+        ) AS discountRate,
         (
           SELECT
             COUNT(*)
@@ -80,10 +106,126 @@ module.exports = class BooksRepository {
       `;
     }
 
-    query += "LIMIT ? OFFSET ?";
+    query += "LIMIT ? OFFSET ?;";
     values.push(param.limit, param.offset);
 
-    query += ";";
+    const [result] = await pool.query(query, values);
+    return result;
+  }
+
+  async selectBooksWithAuthorize(param) {
+    const pool = this.database.pool;
+    let query = `
+      SELECT
+        b.id,
+        b.title,
+        b.img_id AS imgID,
+        b.summary,
+        b.author,
+        b.price,
+        CONVERT(ROUND(b.price - b.price * (
+          SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          JOIN
+            applied_promotions AS ap
+            ON p.id = ap.promotion_id
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND user_id = ?
+            AND book_id = b.id
+        )), SIGNED) AS discountedPrice,
+        (
+          SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          JOIN
+            applied_promotions AS ap
+            ON p.id = ap.promotion_id
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND user_id = ?
+            AND book_id = b.id
+        ) AS discountRate,
+        (
+          SELECT
+            COUNT(*)
+          FROM
+            likes
+          WHERE
+            liked_book_id = b.id
+        ) AS likes
+      FROM
+        books AS b
+    `;
+
+    let conditions = [];
+    let values = [param.userID, param.userID];
+
+    if (param.categoryID) {
+      conditions.push("b.category_id = ?");
+      values.push(param.categoryID);
+    }
+
+    if (param.isNew) {
+      conditions.push(
+        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
+      );
+    }
+
+    if (param.keyword) {
+      let condition = [];
+
+      if (param.isTitle) {
+        condition.push("b.title LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isSummary) {
+        condition.push("b.summary LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isContents) {
+        condition.push("b.contents LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      if (param.isDetail) {
+        condition.push("b.detail LIKE ?");
+        values.push(`%${param.keyword}%`);
+      }
+
+      condition.length && conditions.push(condition.join(" OR "));
+    }
+
+    if (conditions.length) {
+      query += `
+      WHERE
+      ${conditions.join(" AND ")}
+      `;
+    }
+
+    if (param.isBest) {
+      query += `
+        ORDER BY
+          likes DESC,
+          b.pub_date DESC
+      `;
+    }
+
+    query += "LIMIT ? OFFSET ?;";
+    values.push(param.limit, param.offset);
 
     const [result] = await pool.query(query, values);
     return result;
@@ -168,6 +310,32 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
+        CONVERT(ROUND(b.price - b.price * (
+          SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND p.is_user = 0
+        )), SIGNED) AS discountedPrice,
+        (
+        	SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND p.is_user = 0
+        ) AS discountRate,
         b.count,
         (
           SELECT
@@ -211,7 +379,7 @@ module.exports = class BooksRepository {
         b.price,
         CONVERT(ROUND(b.price - b.price * (
           SELECT	
-            MAX(p.discount_rate) AS discountRate
+            MAX(p.discount_rate)
           FROM
             promotions AS p
           JOIN
@@ -226,6 +394,23 @@ module.exports = class BooksRepository {
             AND user_id = ?
             AND book_id = ?
         )), SIGNED) AS discountedPrice,
+        (
+          SELECT	
+            MAX(p.discount_rate)
+          FROM
+            promotions AS p
+          JOIN
+            applied_promotions AS ap
+            ON p.id = ap.promotion_id
+          WHERE
+            (
+              p.start_at IS NULL
+              OR 
+              NOW() BETWEEN p.start_at AND p.end_at
+            )
+            AND user_id = ?
+            AND book_id = ?
+        ) AS discountRate,
         b.count,
         (
           SELECT
@@ -256,7 +441,14 @@ module.exports = class BooksRepository {
         b.id = ?;
     `;
 
-    const values = [param.userID, param.bookID, param.userID, param.bookID];
+    const values = [
+      param.userID,
+      param.bookID,
+      param.userID,
+      param.bookID,
+      param.userID,
+      param.bookID,
+    ];
     const [result] = await pool.query(query, values);
     return result;
   }
