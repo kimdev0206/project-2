@@ -46,7 +46,7 @@ module.exports = class OrdersService {
 
       throw error;
     } finally {
-      await conn.release();
+      conn.release();
     }
   };
 

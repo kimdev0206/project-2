@@ -6,8 +6,12 @@ module.exports = class LikesRepository {
   async insertLike(param) {
     const pool = this.database.pool;
     const query = `
-      INSERT INTO likes
-        (user_id, liked_book_id)
+      INSERT INTO 
+        likes
+        (
+          user_id, 
+          liked_book_id
+        )
       VALUES
         (?, ?);
     `;

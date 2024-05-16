@@ -41,8 +41,13 @@ module.exports = class UsersRepository {
   async insertUser(param) {
     const pool = this.database.pool;
     const query = `
-      INSERT INTO users
-        (email, hashed_password, salt)
+      INSERT INTO
+        users
+        (
+          email,
+          hashed_password,
+          salt
+        )
       VALUES
         (?, ?, ?);
     `;

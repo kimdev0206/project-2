@@ -5,8 +5,13 @@ module.exports = class OrdersRepository {
 
   async insertDelivery(conn, param) {
     const query = `
-      INSERT INTO deliveries
-        (address, receiver, contact)
+      INSERT INTO 
+        deliveries
+        (
+          address,
+          receiver,
+          contact
+        )
       VALUES
         (?, ?, ?);
     `;
@@ -18,7 +23,8 @@ module.exports = class OrdersRepository {
 
   async insertOrder(conn, param) {
     const query = `
-      INSERT INTO orders
+      INSERT INTO
+        orders
         (
           user_id,
           delivery_id,

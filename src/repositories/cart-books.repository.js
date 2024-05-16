@@ -6,8 +6,13 @@ module.exports = class CartBooksRepository {
   async insertCartBook(param) {
     const pool = this.database.pool;
     const query = `
-      INSERT INTO cart_books
-        (book_id, user_id, count)
+      INSERT INTO
+        cart_books
+        (
+          book_id,
+          user_id,
+          count
+        )
       VALUES
         (?, ?, ?);
     `;
