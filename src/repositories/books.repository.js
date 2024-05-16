@@ -316,7 +316,7 @@ module.exports = class BooksRepository {
         b.pub_date AS pubDate
       FROM
         categories AS c
-      JOIN
+      LEFT JOIN
         books AS b
         ON c.id = b.category_id
       WHERE
@@ -390,7 +390,7 @@ module.exports = class BooksRepository {
         b.pub_date AS pubDate
       FROM
         categories AS c
-      JOIN
+      LEFT JOIN
         books AS b
         ON c.id = b.category_id
       WHERE

@@ -79,7 +79,7 @@ class OrdersController {
     }
   };
 
-  getOrdersDetail = async (req, res) => {
+  getOrdersDetail = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { deliveryID } = req.params;
@@ -91,13 +91,11 @@ class OrdersController {
         data,
       });
     } catch (error) {
-      res.locals.name = this.getOrdersDetail.name;
-
       next(error);
     }
   };
 
-  deleteOrder = async (req, res) => {
+  deleteOrder = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { deliveryID } = req.params;
@@ -107,8 +105,6 @@ class OrdersController {
 
       res.status(status).end();
     } catch (error) {
-      res.locals.name = this.deleteOrder.name;
-
       next(error);
     }
   };

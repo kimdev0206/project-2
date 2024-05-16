@@ -1,14 +1,14 @@
 INSERT INTO 
-	promotion_users
-	(
-		promotion_id, 
-		user_id
-	)
+  promotion_users
+  (
+    promotion_id,
+    user_id
+  )
 SELECT
   2 AS promotion_id,
-	u.id	
+  u.id
 FROM
-	users AS u 
+  users AS u
 WHERE
   u.email 
   LIKE '%@gmail.com';
