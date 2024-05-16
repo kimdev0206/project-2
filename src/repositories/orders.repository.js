@@ -5,13 +5,24 @@ module.exports = class OrdersRepository {
 
   async insertDelivery(conn, param) {
     const query = `
-      INSERT INTO deliveries
-        (address, receiver, contact)
+      INSERT INTO
+        deliveries
+      (
+        id,
+        address,
+        receiver,
+        contact
+      )
       VALUES
-        (?, ?, ?);
+        (?, ?, ?, ?);
     `;
 
-    const values = [param.address, param.receiver, param.contact];
+    const values = [
+      param.deliveryID,
+      param.delivery.address,
+      param.delivery.receiver,
+      param.delivery.contact,
+    ];
     const [result] = await conn.query(query, values);
     return result;
   }
@@ -47,6 +58,7 @@ module.exports = class OrdersRepository {
     const pool = this.database.pool;
     const query = `
       SELECT
+        ROW_NUMBER() OVER (ORDER BY d.id) AS seq,
         d.id AS deliveryID,
         d.address,
         d.receiver,
@@ -57,7 +69,7 @@ module.exports = class OrdersRepository {
         o.created_at AS createdAt
       FROM
         deliveries AS d
-      LEFT JOIN
+      JOIN
         orders AS o
         ON d.id = o.delivery_id
       WHERE

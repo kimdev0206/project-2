@@ -17,7 +17,7 @@ class OrdersController {
 
   initRoutes() {
     this.router.post(
-      this.path,
+      `${this.path}/:deliveryID`,
       verifyAccessToken,
       validateOrder,
       validateError,
@@ -39,11 +39,13 @@ class OrdersController {
   postOrder = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
+      const { deliveryID } = req.params;
       const { mainBookTitle, books, delivery, totalCount, totalPrice } =
         req.body;
 
       const param = {
         userID,
+        deliveryID,
         mainBookTitle,
         books,
         delivery,
@@ -56,8 +58,6 @@ class OrdersController {
         message: "주문 처리되었습니다.",
       });
     } catch (error) {
-      res.locals.name = this.postOrder.name;
-
       next(error);
     }
   };
@@ -73,8 +73,6 @@ class OrdersController {
         data,
       });
     } catch (error) {
-      res.locals.name = this.getOrders.name;
-
       next(error);
     }
   };

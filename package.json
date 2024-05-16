@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www",
-    "data:insert-orders": "node --env-file=.env scripts/insert-orders/index.js"
+    "data:orders": "node --env-file=.env scripts/insert-orders/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "serverless": "^3.38.0"
+    "serverless": "^3.38.0",
+    "uuid": "^9.0.1"
   }
 }

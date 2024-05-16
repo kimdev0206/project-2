@@ -1,13 +1,10 @@
 const { fakerKO: faker } = require("@faker-js/faker");
 const InsertBooks = require("./insert-books");
-const InsertDeliveries = require("./insert-deliveries");
 const InsertUsers = require("./insert-users");
 const { makeIDs, makeIDIterator } = require("../utils");
 
 module.exports = class InsertOrders {
-  static makeValues() {
-    const deliveryIDs = makeIDs(InsertDeliveries.size);
-
+  static makeValues(deliveryIDs) {
     const userIDs = makeIDs(InsertUsers.size).flatMap((userID) =>
       Array(InsertUsers.size).fill(userID)
     );
@@ -49,7 +46,7 @@ module.exports = class InsertOrders {
     });
   }
 
-  static async run(conn) {
+  static async run(conn, deliveryIDs) {
     const query = `
       INSERT INTO 
         orders
@@ -65,7 +62,7 @@ module.exports = class InsertOrders {
         ?;
     `;
 
-    const values = this.makeValues();
+    const values = this.makeValues(deliveryIDs);
     const [result] = await conn.query(query, [values]);
     return result;
   }

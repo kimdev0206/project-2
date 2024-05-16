@@ -2,6 +2,7 @@ const InsertBooks = require("./insert-books");
 const InsertDeliveries = require("./insert-deliveries");
 const InsertOrders = require("./insert-orders");
 const InsertUsers = require("./insert-users");
+const SelectDeliveries = require("./select-deliveries");
 const database = require("../../src/database");
 
 async function run(conn) {
@@ -11,7 +12,8 @@ async function run(conn) {
     InsertDeliveries.run(conn),
   ]);
 
-  const orders = await InsertOrders.run(conn);
+  const deliveryIDs = (await SelectDeliveries.run(conn)).map((each) => each.id);
+  const orders = await InsertOrders.run(conn, deliveryIDs);
 
   return {
     usersRows: users.affectedRows,

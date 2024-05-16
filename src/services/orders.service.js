@@ -19,10 +19,12 @@ module.exports = class OrdersService {
     try {
       await conn.beginTransaction();
 
-      const { insertId: deliveryID } = await this.repository.insertDelivery(
-        conn,
-        param.delivery
-      );
+      try {
+        await this.repository.insertDelivery(conn, param);
+      } catch {
+        const message = "이미 주문 처리되었습니다.";
+        throw new HttpError(StatusCodes.CONFLICT, message);
+      }
 
       const { affectedRows } = await booksRepository.updateCount(conn, param);
 
@@ -31,7 +33,6 @@ module.exports = class OrdersService {
         throw new HttpError(StatusCodes.NOT_FOUND, message);
       }
 
-      param.deliveryID = deliveryID;
       param.bookIDs = param.books.map((book) => book.bookID);
       await Promise.allSettled([
         this.repository.insertOrder(conn, param),

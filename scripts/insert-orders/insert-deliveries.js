@@ -1,11 +1,13 @@
 const { fakerKO: faker } = require("@faker-js/faker");
-const { makeIDs } = require("../utils");
+const { v1: uuid } = require("uuid");
 
 module.exports = class InsertDeliveries {
   static size = 100;
 
   static makeValues() {
-    const deliveryIDs = makeIDs(this.size);
+    const deliveryIDs = Array(this.size)
+      .fill()
+      .map(() => uuid());
 
     return deliveryIDs.map((deliveryID) => [
       deliveryID,
