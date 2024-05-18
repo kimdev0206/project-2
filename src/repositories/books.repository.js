@@ -78,7 +78,7 @@ module.exports = class BooksRepository {
         values.push(`%${param.keyword}%`);
       }
 
-      condition.length && conditions.push(condition.join(" OR "));
+      condition.length && conditions.push(`(${condition.join(" OR ")})`);
     }
 
     if (conditions.length) {
@@ -184,7 +184,7 @@ module.exports = class BooksRepository {
         values.push(`%${param.keyword}%`);
       }
 
-      condition.length && conditions.push(condition.join(" OR "));
+      condition.length && conditions.push(`(${condition.join(" OR ")})`);
     }
 
     if (conditions.length) {
@@ -255,7 +255,7 @@ module.exports = class BooksRepository {
         values.push(`%${param.keyword}%`);
       }
 
-      condition.length && conditions.push(condition.join(" OR "));
+      condition.length && conditions.push(`(${condition.join(" OR ")})`);
     }
 
     if (conditions.length) {
