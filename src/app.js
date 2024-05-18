@@ -22,6 +22,7 @@ module.exports = class App {
       origin: [process.env.GUEST_LOCAL, process.env.GUEST_CLOUD],
       exposedHeaders: ["Access-Token", "Refresh-Token"],
       credentials: true,
+      maxAge: process.env.ACCESS_CONTROL_MAX_AGE,
     };
 
     this.app.use(cors(corsOptions));
