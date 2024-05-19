@@ -5,11 +5,13 @@ const {
   validateOrder,
 } = require("../middlewares");
 const OrdersService = require("../services/orders.service");
+const HttpError = require("../error/HttpError");
 
 class OrdersController {
   path = "/orders";
   router = Router();
   service = new OrdersService();
+  requestCount = 0;
 
   constructor() {
     this.initRoutes();
@@ -37,7 +39,14 @@ class OrdersController {
   }
 
   postOrder = async (req, res, next) => {
+    this.requestCount += 1;
+
     try {
+      if (this.requestCount % 2 === 1) {
+        const message = "네트워크 에러가 발생하였습니다.";
+        throw new HttpError(500, message);
+      }
+
       const { userID } = req.decodedToken;
       const { deliveryID } = req.params;
       const { mainBookTitle, books, delivery, totalCount, totalPrice } =
