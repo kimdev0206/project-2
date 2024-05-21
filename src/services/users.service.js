@@ -77,7 +77,7 @@ module.exports = class UsersService {
 
     param.userID = row.userID;
     param.refreshToken = refreshToken;
-    await this.repository.updateUserRefreshToken(param);
+    await this.repository.upsertRefreshToken(param);
 
     return {
       accessToken,
@@ -116,7 +116,7 @@ module.exports = class UsersService {
   }
 
   async getAccessToken(param) {
-    const [row] = await this.repository.selectUserByID(param);
+    const [row] = await this.repository.selectRefreshToken(param);
 
     if (row.refreshToken !== param.refreshToken) {
       const message = "재발급 토큰이 유효하지 않습니다.";

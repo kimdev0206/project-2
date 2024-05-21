@@ -54,9 +54,10 @@ class UsersController {
 
   logIn = async (req, res, next) => {
     try {
+      const { ip } = req;
       const { email, password } = req.body;
 
-      const param = { email, password };
+      const param = { ip, email, password };
       const { accessToken, refreshToken } = await this.service.logIn(param);
 
       res.header("Access-Token", accessToken);
@@ -102,10 +103,11 @@ class UsersController {
 
   getAccessToken = async (req, res, next) => {
     try {
+      const { ip } = req;
       const { userID } = req.decodedToken;
       const refreshToken = req.headers["refresh-token"];
 
-      const param = { userID, refreshToken };
+      const param = { ip, userID, refreshToken };
       const accessToken = await this.service.getAccessToken(param);
 
       res.header("Access-Token", accessToken);

@@ -21,19 +21,23 @@ module.exports = class UsersRepository {
     return result;
   }
 
-  async selectUserByID(param) {
+  async selectRefreshToken(param) {
     const pool = this.database.pool;
     const query = `
       SELECT
-        id AS userID,
-        refresh_token AS refreshToken
+        u.id AS userID,
+        r.refresh_token AS refreshToken
       FROM
-        users
+        users AS u
+      LEFT JOIN
+        refresh_tokens AS r
+        ON u.id = r.user_id
       WHERE
-        id = ?;
+        u.id = ?
+        AND r.ip = ?;
     `;
 
-    const values = [param.userID];
+    const values = [param.userID, param.ip];
     const [result] = await pool.query(query, values);
     return result;
   }
@@ -56,18 +60,25 @@ module.exports = class UsersRepository {
     await pool.query(query, values);
   }
 
-  async updateUserRefreshToken(param) {
+  async upsertRefreshToken(param) {
     const pool = this.database.pool;
     const query = `
-      UPDATE
-        users
-      SET
-        refresh_token = ?
-      WHERE
-        id = ?;
+      INSERT INTO
+        refresh_tokens
+        (
+          user_id,
+          ip,
+          refresh_token
+        )
+      VALUES
+        (?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        user_id = VALUES(user_id),
+        ip = VALUES(ip),
+        refresh_token = VALUES(refresh_token);
     `;
 
-    const values = [param.refreshToken, param.userID];
+    const values = [param.userID, param.ip, param.refreshToken];
     const [result] = await pool.query(query, values);
     return result;
   }
