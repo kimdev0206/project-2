@@ -1,8 +1,8 @@
 const { Router } = require("express");
 const {
-  verifyRefreshToken,
   validateUser,
   validateError,
+  verifyRefreshToken,
 } = require("../middlewares");
 const UsersService = require("../services/users.service");
 
@@ -54,10 +54,9 @@ class UsersController {
 
   logIn = async (req, res, next) => {
     try {
-      const { ip } = req;
       const { email, password } = req.body;
 
-      const param = { ip, email, password };
+      const param = { email, password };
       const { accessToken, refreshToken } = await this.service.logIn(param);
 
       res.header("Access-Token", accessToken);
@@ -103,12 +102,8 @@ class UsersController {
 
   getAccessToken = async (req, res, next) => {
     try {
-      const { ip } = req;
       const { userID } = req.decodedToken;
-      const refreshToken = req.headers["refresh-token"];
-
-      const param = { ip, userID, refreshToken };
-      const accessToken = await this.service.getAccessToken(param);
+      const accessToken = await this.service.getAccessToken(userID);
 
       res.header("Access-Token", accessToken);
       res.json({

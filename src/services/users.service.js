@@ -75,10 +75,6 @@ module.exports = class UsersService {
       }
     );
 
-    param.userID = row.userID;
-    param.refreshToken = refreshToken;
-    await this.repository.upsertRefreshToken(param);
-
     return {
       accessToken,
       refreshToken,
@@ -115,22 +111,11 @@ module.exports = class UsersService {
     }
   }
 
-  async getAccessToken(param) {
-    const [row] = await this.repository.selectRefreshToken(param);
-
-    if (row.refreshToken !== param.refreshToken) {
-      const message = "재발급 토큰이 유효하지 않습니다.";
-      throw new HttpError(StatusCodes.FORBIDDEN, message);
-    }
-
-    const accessToken = jwt.sign(
-      { userID: row.userID },
-      process.env.JWT_PRIVATE_KEY,
-      {
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-        issuer: "Yongki Kim",
-      }
-    );
+  async getAccessToken(userID) {
+    const accessToken = jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY, {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+      issuer: "Yongki Kim",
+    });
 
     return accessToken;
   }
