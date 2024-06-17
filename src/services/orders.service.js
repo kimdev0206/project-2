@@ -13,7 +13,7 @@ module.exports = class OrdersService {
     const booksRepository = new BooksRepository();
     const cartBooksRepository = new CartBooksRepository();
 
-    const pool = this.database.pool;
+    const pool = this.database.writePool;
     const conn = await pool.getConnection();
 
     try {

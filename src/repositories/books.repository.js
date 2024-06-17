@@ -4,7 +4,7 @@ module.exports = class BooksRepository {
   database = database;
 
   async selectBooks(param) {
-    const pool = this.database.pool;
+    const pool = this.database.readPool;
     let query = `
       SELECT
         b.id,
@@ -104,7 +104,7 @@ module.exports = class BooksRepository {
   }
 
   async selectBooksWithAuthorize(param) {
-    const pool = this.database.pool;
+    const pool = this.database.readPool;
     let query = `
       SELECT
         b.id,
@@ -210,7 +210,7 @@ module.exports = class BooksRepository {
   }
 
   async selectBooksCount(param) {
-    const pool = this.database.pool;
+    const pool = this.database.readPool;
     let query = `
       SELECT
         COUNT(*) AS count
@@ -272,7 +272,7 @@ module.exports = class BooksRepository {
   }
 
   async selectBook(param) {
-    const pool = this.database.pool;
+    const pool = this.database.readPool;
     const query = `
       SELECT
         b.id,
@@ -329,7 +329,7 @@ module.exports = class BooksRepository {
   }
 
   async selectBookWithAuthorize(param) {
-    const pool = this.database.pool;
+    const pool = this.database.readPool;
     const query = `
       SELECT
         b.id,

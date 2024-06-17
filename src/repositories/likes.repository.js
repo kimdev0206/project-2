@@ -4,7 +4,7 @@ module.exports = class LikesRepository {
   database = database;
 
   async insertLike(param) {
-    const pool = this.database.pool;
+    const pool = this.database.writePool;
     const query = `
       INSERT INTO 
         likes
@@ -21,7 +21,7 @@ module.exports = class LikesRepository {
   }
 
   async deleteLike(param) {
-    const pool = this.database.pool;
+    const pool = this.database.writePool;
     const query = `
       DELETE
       FROM

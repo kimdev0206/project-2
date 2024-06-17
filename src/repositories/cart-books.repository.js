@@ -4,7 +4,7 @@ module.exports = class CartBooksRepository {
   database = database;
 
   async insertCartBook(param) {
-    const pool = this.database.pool;
+    const pool = this.database.writePool;
     const query = `
       INSERT INTO
         cart_books
@@ -22,7 +22,7 @@ module.exports = class CartBooksRepository {
   }
 
   async deleteCartBook(param) {
-    const pool = this.database.pool;
+    const pool = this.database.writePool;
     const query = `
       DELETE
       FROM
@@ -52,7 +52,7 @@ module.exports = class CartBooksRepository {
   }
 
   async selectCartBooks(param) {
-    const pool = this.database.pool;
+    const pool = this.database.readPool;
     let query = `
       SELECT
         cb.book_id AS bookID,
