@@ -50,7 +50,7 @@ module.exports = class OrdersRepository {
   }
 
   async selectOrders(param) {
-    const pool = this.database.readPool;
+    const pool = this.database.pool;
     const query = `
       SELECT
         d.id AS deliveryID,
@@ -76,7 +76,7 @@ module.exports = class OrdersRepository {
   }
 
   async selectOrdersDetail(param) {
-    const pool = this.database.readPool;
+    const pool = this.database.pool;
     const query = `
       SELECT
         books AS books
@@ -93,7 +93,7 @@ module.exports = class OrdersRepository {
   }
 
   async deleteOrder(param) {
-    const pool = this.database.writePool;
+    const pool = this.database.pool;
     const query = `
       DELETE
       FROM

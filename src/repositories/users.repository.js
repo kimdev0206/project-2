@@ -4,7 +4,7 @@ module.exports = class UsersRepository {
   database = database;
 
   async selectUserByEmail(param) {
-    const pool = this.database.readPool;
+    const pool = this.database.pool;
     const query = `
       SELECT
         id AS userID,
@@ -22,7 +22,7 @@ module.exports = class UsersRepository {
   }
 
   async insertUser(param) {
-    const pool = this.database.writePool;
+    const pool = this.database.pool;
     const query = `
       INSERT INTO
         users
@@ -40,7 +40,7 @@ module.exports = class UsersRepository {
   }
 
   async updateUserPassword(param) {
-    const pool = this.database.writePool;
+    const pool = this.database.pool;
     const query = `
       UPDATE
         users

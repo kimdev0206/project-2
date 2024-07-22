@@ -22,7 +22,7 @@ async function run(conn) {
 }
 
 (async function () {
-  const pool = database.writePool;
+  const pool = database.pool;
   const conn = await pool.getConnection();
 
   try {
