@@ -1,5 +1,3 @@
-const logger = require("../logger");
-
 module.exports = function log(req, _, next) {
   let log = [`${req.method} on ${req.url}`];
 
@@ -15,7 +13,7 @@ module.exports = function log(req, _, next) {
       break;
   }
 
-  logger.info(log.join(" "));
+  console.info(log.join(" "));
 
   next();
 };

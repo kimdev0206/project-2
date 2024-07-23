@@ -1,14 +1,12 @@
 const { StatusCodes } = require("http-status-codes");
-const logger = require("../logger");
 
 module.exports = function error(error, req, res, _) {
   let log = [
-    error,
+    error.message,
     req.decodedToken && `with userID (${req.decodedToken.userID})`,
-    `at ${new Date().toLocaleString()}`,
   ];
 
-  logger.error(log.join(" "));
+  console.error(log.join(" "));
 
   res.status(error.status || StatusCodes.INTERNAL_SERVER_ERROR);
   res.json({

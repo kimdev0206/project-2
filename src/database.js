@@ -1,29 +1,33 @@
 const mysql = require("mysql2/promise");
-const logger = require("./logger");
+const { isProduction } = require("./utils");
 
 class Database {
-  config =
-    process.env.NODE_ENV?.trim() === "production"
-      ? {
+  config = {
+    host: "localhost",
+    user: "root",
+    password: process.env.MYSQL_PASSWORD,
+    database: "project-2",
+  };
+
+  constructor() {
+    isProduction() &&
+      (this.config = {
+        ...this.config,
+        ...{
           host: process.env.MYSQL_HOST,
           user: process.env.MYSQL_USER,
           password: process.env.MYSQL_PASSWORD,
-          database: process.env.MYSQL_DATABASE_NAME,
-        }
-      : {
-          host: "localhost",
-          user: "root",
-          password: process.env.MYSQL_PASSWORD,
-          database: "project-2",
-        };
+        },
+      });
+  }
 
   pool = mysql.createPool(this.config);
 
   connect() {
     this.pool
       .query("SELECT 1;")
-      .then(() => logger.info("Connected on port 3306 (MySQL)"))
-      .catch((error) => logger.error(error.message));
+      .then(() => console.info("Connected on port 3306 (MySQL)"))
+      .catch((error) => console.error(error.message));
   }
 }
 

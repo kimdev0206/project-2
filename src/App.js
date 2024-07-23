@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const controllers = require("./controllers");
-const { logMiddleware, errorMiddleware } = require("./middlewares");
-const logger = require("./logger");
+const { error, httpError, log, pathError } = require("./middlewares");
 
 module.exports = class App {
   app = express();
@@ -14,7 +13,7 @@ module.exports = class App {
   }
 
   listen() {
-    this.app.listen(3000, () => logger.info("Listening on port 3000"));
+    this.app.listen(3000, () => console.info("Listening on port 3000"));
   }
 
   initPreMiddlewares() {
@@ -28,7 +27,7 @@ module.exports = class App {
     this.app.use(cors(corsOptions));
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(express.json());
-    this.app.use(logMiddleware);
+    this.app.use(log);
   }
 
   initControllers(controllers) {
@@ -38,6 +37,8 @@ module.exports = class App {
   }
 
   initPostMiddlewares() {
-    this.app.use(errorMiddleware);
+    this.app.use(pathError);
+    this.app.use(httpError);
+    this.app.use(error);
   }
 };
