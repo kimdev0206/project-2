@@ -9,5 +9,4 @@ SELECT
 FROM
   users AS u
 WHERE
-  u.email 
-  LIKE '%@gmail.com';
+  u.email LIKE '%@gmail.com';

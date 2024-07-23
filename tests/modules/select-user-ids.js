@@ -1,19 +1,19 @@
 const database = require("../../src/database");
 
-module.exports = class SelectBookIDs {
+module.exports = class SelectUserIDs {
   static async run(params) {
     const { pool } = database;
     const query = `
       SELECT
-        b.id AS bookID
+        u.id AS userID
       FROM
-        books AS b
+        users AS u
       ORDER BY
-        b.created_at DESC
+        u.created_at DESC
       LIMIT ?;
     `;
 
-    const values = [params.bookSize];
+    const values = [params.userSize];
     const [result] = await pool.query(query, values);
     return result;
   }
