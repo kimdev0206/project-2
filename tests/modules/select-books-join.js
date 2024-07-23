@@ -1,9 +1,10 @@
+const { SelectBooksQueryBuilder } = require("../../src/query-builders");
 const database = require("../../src/database");
 
 module.exports = class SelectBooksJoin {
   static async run(params) {
-    const { pool } = database;
-    let query = `
+    const builder = new SelectBooksQueryBuilder();
+    const baseQuery = `
       SELECT
         b.id,
         b.title,
@@ -30,71 +31,18 @@ module.exports = class SelectBooksJoin {
         ON b.category_id = ap.category_id
     `;
 
-    let conditions = [];
-    let values = [];
+    builder
+      .setBaseQuery(baseQuery)()
+      .setCategoryID(params.categoryID)
+      .setIsNew(params.isNew)
+      .setKeyword(params)
+      .setGrouping()
+      .setIsBest(params.isBest)
+      .setPaging(params)
+      .build();
 
-    if (params.categoryID) {
-      conditions.push("b.category_id = ?");
-      values.push(params.categoryID);
-    }
-
-    if (params.isNew) {
-      conditions.push(
-        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
-      );
-    }
-
-    if (params.keyword) {
-      let condition = [];
-
-      if (params.isTitle) {
-        condition.push("b.title LIKE ?");
-        values.push(`%${params.keyword}%`);
-      }
-
-      if (params.isSummary) {
-        condition.push("b.summary LIKE ?");
-        values.push(`%${params.keyword}%`);
-      }
-
-      if (params.isContents) {
-        condition.push("b.contents LIKE ?");
-        values.push(`%${params.keyword}%`);
-      }
-
-      if (params.isDetail) {
-        condition.push("b.detail LIKE ?");
-        values.push(`%${params.keyword}%`);
-      }
-
-      condition.length && conditions.push(`(${condition.join(" OR ")})`);
-    }
-
-    if (conditions.length) {
-      query += `
-        WHERE
-        ${conditions.join(" AND ")}
-      `;
-    }
-
-    let clauses = ["GROUP BY b.id"];
-
-    if (params.isBest) {
-      clauses.push("ORDER BY likes DESC, b.pub_date DESC");
-    }
-
-    if (params.limit && params.page) {
-      clauses.push("LIMIT ? OFFSET ?");
-
-      const offset = (params.page - 1) * params.limit;
-      values.push(params.limit, offset);
-    }
-
-    query += `
-      ${clauses.join(" ")};
-    `;
-
-    const [result] = await pool.query(query, values);
+    const { pool } = database;
+    const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
 };
