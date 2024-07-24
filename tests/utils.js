@@ -1,3 +1,13 @@
+const { fakerKO: faker } = require("@faker-js/faker");
+const { v1: uuidv1 } = require("uuid");
+
+module.exports = {
+  getRandomKey,
+  makeIDs,
+  makeDeliveries,
+  makeOrderIDs,
+};
+
 function getRandomKey(object) {
   const keys = Object.keys(object);
   const idx = Math.floor(Math.random() * keys.length);
@@ -7,6 +17,18 @@ function getRandomKey(object) {
 
 function makeIDs(size) {
   return Array.from({ length: size }, (_, index) => index + 1);
+}
+
+function makeDeliveries(size) {
+  return Array.from({ length: size }, () => ({
+    address: faker.location.streetAddress({ useFullAddress: true }),
+    receiver: `${faker.person.lastName()}${faker.person.firstName()}`,
+    contact: faker.phone.number(),
+  }));
+}
+
+function makeOrderIDs(size) {
+  return Array.from({ length: size }, () => uuidv1());
 }
 
 Array.prototype.validatePromises = function () {
@@ -20,7 +42,13 @@ Array.prototype.getRandomValue = function () {
   return this[idx];
 };
 
-module.exports = {
-  getRandomKey,
-  makeIDs,
+Array.prototype.makeIDIterator = function () {
+  let index = 0;
+
+  return () => {
+    const id = this[index];
+    index = (index + 1) % this.length;
+
+    return id;
+  };
 };

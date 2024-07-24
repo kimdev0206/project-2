@@ -1,8 +1,8 @@
-const DeleteBooks = require("./delete-books");
 const DeleteUser = require("./delete-user");
-const DeleteUsers = require("./delete-users");
+const Delete = require("./delete");
 const InsertBooks = require("./insert-books");
 const InsertLikes = require("./insert-likes");
+const InsertOrders = require("./insert-orders");
 const InsertPromotionCategory = require("./insert-promotion-category");
 const InsertPromotionUser = require("./insert-promotion-user");
 const InsertUsers = require("./insert-users");
@@ -12,14 +12,15 @@ const SelectBookJoin = require("./select-book-join");
 const SelectBookSubQuery = require("./select-book-sub-query");
 const SelectBooksJoin = require("./select-books-join");
 const SelectBooksSubQuery = require("./select-books-sub-query");
+const SelectRandomBooks = require("./select-random-books");
 const SelectUserIDs = require("./select-user-ids");
 
 module.exports = {
-  DeleteBooks,
   DeleteUser,
-  DeleteUsers,
+  Delete,
   InsertBooks,
   InsertLikes,
+  InsertOrders,
   InsertPromotionCategory,
   InsertPromotionUser,
   InsertUsers,
@@ -29,5 +30,6 @@ module.exports = {
   SelectBookSubQuery,
   SelectBooksJoin,
   SelectBooksSubQuery,
+  SelectRandomBooks,
   SelectUserIDs,
 };

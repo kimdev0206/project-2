@@ -1,17 +1,17 @@
 const database = require("../../src/database");
 
-module.exports = class DeleteUsers {
+module.exports = class Delete {
   static async run(params) {
     const { pool } = database;
     const query = `
       DELETE
       FROM
-        users
+        ${params.table}
       WHERE
-        id IN (?);
+        id IN (?)
     `;
 
-    const values = [params.userIDs];
+    const values = [params.ids];
     const [result] = await pool.query(query, values);
     return result;
   }
