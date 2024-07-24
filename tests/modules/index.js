@@ -8,6 +8,8 @@ const InsertPromotionUser = require("./insert-promotion-user");
 const InsertUsers = require("./insert-users");
 const SelectBookCount = require("./select-book-count");
 const SelectBookIDs = require("./select-book-ids");
+const SelectBookJoin = require("./select-book-join");
+const SelectBookSubQuery = require("./select-book-sub-query");
 const SelectBooksJoin = require("./select-books-join");
 const SelectBooksSubQuery = require("./select-books-sub-query");
 const SelectUserIDs = require("./select-user-ids");
@@ -23,6 +25,8 @@ module.exports = {
   InsertUsers,
   SelectBookCount,
   SelectBookIDs,
+  SelectBookJoin,
+  SelectBookSubQuery,
   SelectBooksJoin,
   SelectBooksSubQuery,
   SelectUserIDs,

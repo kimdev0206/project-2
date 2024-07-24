@@ -3,10 +3,8 @@ const database = require("../../src/database");
 
 module.exports = class InsertUsers {
   static makeValues(size) {
-    const emailList = faker.helpers.uniqueArray(faker.internet.email, size);
-
-    return emailList.map((email) => [
-      email,
+    return Array.from({ length: size }, () => [
+      faker.internet.email({ provider: "gmail.com" }),
       faker.internet.password({ length: 24 }),
       faker.internet.password({ length: 24 }),
     ]);

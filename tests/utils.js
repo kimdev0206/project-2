@@ -15,6 +15,11 @@ Array.prototype.validatePromises = function () {
   });
 };
 
+Array.prototype.getRandomValue = function () {
+  const idx = Math.floor(Math.random() * this.length);
+  return this[idx];
+};
+
 module.exports = {
   getRandomKey,
   makeIDs,
