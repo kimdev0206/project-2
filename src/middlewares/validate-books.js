@@ -1,7 +1,5 @@
 const validator = require("express-validator");
-
-const emptyMessage = "값이 존재하지 않습니다.";
-const invalidateMessage = "타입이 유효하지 않습니다.";
+const { EMPTY_VALUE, INVALID_TYPE } = require("../constants/validate-message");
 
 module.exports = async function validateBooks(req, _, next) {
   const validations = [
@@ -9,58 +7,58 @@ module.exports = async function validateBooks(req, _, next) {
       .query("categoryID")
       .optional()
       .isInt({ gt: 0, allow_leading_zeroes: false })
-      .withMessage(invalidateMessage)
-      .customSanitizer((value) => Number(value)),
+      .withMessage(INVALID_TYPE)
+      .customSanitizer(Number),
     validator
       .query("isNew")
       .optional()
       .isBoolean()
-      .withMessage(invalidateMessage)
+      .withMessage(INVALID_TYPE)
       .customSanitizer((value) => value === "true"),
     validator
       .query("isBest")
       .optional()
       .isBoolean()
-      .withMessage(invalidateMessage)
+      .withMessage(INVALID_TYPE)
       .customSanitizer((value) => value === "true"),
     validator
       .query("isTitle")
       .optional()
       .isBoolean()
-      .withMessage(invalidateMessage)
+      .withMessage(INVALID_TYPE)
       .customSanitizer((value) => value === "true"),
     validator
       .query("isSummary")
       .optional()
       .isBoolean()
-      .withMessage(invalidateMessage)
+      .withMessage(INVALID_TYPE)
       .customSanitizer((value) => value === "true"),
     validator
       .query("isContents")
       .optional()
       .isBoolean()
-      .withMessage(invalidateMessage)
+      .withMessage(INVALID_TYPE)
       .customSanitizer((value) => value === "true"),
     validator
       .query("isDetail")
       .optional()
       .isBoolean()
-      .withMessage(invalidateMessage)
+      .withMessage(INVALID_TYPE)
       .customSanitizer((value) => value === "true"),
     validator
       .query("limit")
       .notEmpty()
-      .withMessage(emptyMessage)
+      .withMessage(EMPTY_VALUE)
       .isInt({ gt: 0, allow_leading_zeroes: false })
-      .withMessage(invalidateMessage)
-      .customSanitizer((value) => Number(value)),
+      .withMessage(INVALID_TYPE)
+      .customSanitizer(Number),
     validator
       .query("page")
       .notEmpty()
-      .withMessage(emptyMessage)
+      .withMessage(EMPTY_VALUE)
       .isInt({ gt: 0, allow_leading_zeroes: false })
-      .withMessage(invalidateMessage)
-      .customSanitizer((value) => Number(value)),
+      .withMessage(INVALID_TYPE)
+      .customSanitizer(Number),
   ];
 
   await Promise.all(validations.map((validation) => validation.run(req)));

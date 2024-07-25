@@ -1,17 +1,19 @@
 const validator = require("express-validator");
-
-const emptyMessage = "값이 존재하지 않습니다.";
+const {
+  EMPTY_VALUE,
+  INVALID_FORMAT,
+} = require("../constants/validate-message");
 
 module.exports = async function validateUser(req, _, next) {
   const validations = [
     validator
       .body("email")
       .notEmpty()
-      .withMessage(emptyMessage)
+      .withMessage(EMPTY_VALUE)
       .isEmail()
-      .withMessage("유효하지 않은 email 형식 입니다."),
+      .withMessage(INVALID_FORMAT),
 
-    validator.body("password").notEmpty().withMessage(emptyMessage),
+    validator.body("password").notEmpty().withMessage(EMPTY_VALUE),
   ];
 
   await Promise.all(validations.map((validation) => validation.run(req)));

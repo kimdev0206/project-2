@@ -1,11 +1,12 @@
-const { StatusCodes } = require("http-status-codes");
 const validator = require("express-validator");
 
 module.exports = async function validateError(req, res, next) {
   const errors = validator.validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
+    console.info(errors.array());
+
+    return res.status(400).json({
       errors: errors.array(),
     });
   }
