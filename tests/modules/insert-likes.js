@@ -2,8 +2,8 @@ const database = require("../../src/database");
 
 module.exports = class InsertLikes {
   static makeValues(params) {
-    return params.bookIDs.flatMap((bookID) =>
-      params.userIDs.map((userID) => [bookID, userID])
+    return params.userIDs.flatMap((userID) =>
+      params.bookIDs.map((bookID) => [userID, bookID])
     );
   }
 
@@ -12,8 +12,8 @@ module.exports = class InsertLikes {
     const query = `
       INSERT INTO
         likes (
-          liked_book_id,
-          user_id
+          user_id,
+          book_id
         )
       VALUES
         ?;

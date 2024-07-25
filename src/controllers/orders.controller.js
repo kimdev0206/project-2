@@ -2,6 +2,7 @@ const { Router } = require("express");
 const {
   verifyAccessToken,
   validateError,
+  validateOrderID,
   validateOrder,
 } = require("../middlewares");
 const OrdersService = require("../services/orders.service");
@@ -17,47 +18,51 @@ class OrdersController {
 
   initRoutes() {
     this.router.post(
-      this.path,
+      this.path + "/:orderID",
       verifyAccessToken,
+      validateOrderID,
       validateOrder,
       validateError,
       this.postOrder
     );
     this.router.get(this.path, verifyAccessToken, this.getOrders);
     this.router.get(
-      `${this.path}/:deliveryID`,
+      this.path + "/:orderID",
       verifyAccessToken,
-      this.getOrdersDetail
+      validateOrderID,
+      this.getOrder
     );
     this.router.delete(
-      `${this.path}/:deliveryID`,
+      this.path + "/:orderID",
       verifyAccessToken,
+      validateOrderID,
       this.deleteOrder
     );
   }
 
   postOrder = async (req, res, next) => {
     try {
+      const { orderID } = req.params;
       const { userID } = req.decodedToken;
-      const { mainBookTitle, books, delivery, totalCount, totalPrice } =
+      const { delivery, mainBookTitle, books, totalCount, totalPrice } =
         req.body;
 
-      const param = {
+      const dto = {
+        orderID,
         userID,
+        delivery,
         mainBookTitle,
         books,
-        delivery,
         totalCount,
         totalPrice,
       };
-      const status = await this.service.postOrder(param);
+      const status = await this.service.postOrder(dto);
 
       res.status(status).json({
         message: "주문 처리되었습니다.",
       });
     } catch (error) {
       res.locals.name = this.postOrder.name;
-
       next(error);
     }
   };
@@ -66,31 +71,31 @@ class OrdersController {
     try {
       const { userID } = req.decodedToken;
 
-      const param = { userID };
-      const data = await this.service.getOrders(param);
+      const dto = { userID };
+      const data = await this.service.getOrders(dto);
 
       res.json({
         data,
       });
     } catch (error) {
       res.locals.name = this.getOrders.name;
-
       next(error);
     }
   };
 
-  getOrdersDetail = async (req, res, next) => {
+  getOrder = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
-      const { deliveryID } = req.params;
+      const { orderID } = req.params;
 
-      const param = { userID, deliveryID };
-      const data = await this.service.getOrdersDetail(param);
+      const dto = { userID, orderID };
+      const data = await this.service.getOrder(dto);
 
       res.json({
         data,
       });
     } catch (error) {
+      res.locals.name = this.getOrder.name;
       next(error);
     }
   };
@@ -98,13 +103,14 @@ class OrdersController {
   deleteOrder = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
-      const { deliveryID } = req.params;
+      const { orderID } = req.params;
 
-      const param = { userID, deliveryID };
-      const status = await this.service.deleteOrder(param);
+      const dto = { userID, orderID };
+      const status = await this.service.deleteOrder(dto);
 
       res.status(status).end();
     } catch (error) {
+      res.locals.name = this.deleteOrder.name;
       next(error);
     }
   };

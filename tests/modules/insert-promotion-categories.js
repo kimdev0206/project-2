@@ -1,19 +1,19 @@
 const database = require("../../src/database");
 
-module.exports = class InsertPromotionCategory {
+module.exports = class InsertPromotionCategories {
   static async run(params) {
     const { pool } = database;
     const query = `
       INSERT INTO 
         promotion_categories (
-          promotion_id,
+          book_id,
           category_id,
-          book_id
+          promotion_id
         )
       SELECT
-        1 AS promotion_id,
+        b.id,
         b.category_id,
-        b.id
+        1 AS promotion_id
       FROM
         books AS b
       WHERE

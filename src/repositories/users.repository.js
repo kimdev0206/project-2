@@ -3,8 +3,8 @@ const database = require("../database");
 module.exports = class UsersRepository {
   database = database;
 
-  async selectUserByEmail(param) {
-    const pool = this.database.pool;
+  async selectUser(email) {
+    const { pool } = this.database;
     const query = `
       SELECT
         id AS userID,
@@ -13,20 +13,20 @@ module.exports = class UsersRepository {
       FROM
         users
       WHERE
-        email = ?;
+        email = ?
+        AND is_deleted = 0;
     `;
 
-    const values = [param.email];
+    const values = [email];
     const [result] = await pool.query(query, values);
     return result;
   }
 
-  async insertUser(param) {
-    const pool = this.database.pool;
+  async insertUser(dao) {
+    const { pool } = this.database;
     const query = `
       INSERT INTO
-        users
-        (
+        users (
           email,
           hashed_password,
           salt
@@ -35,12 +35,12 @@ module.exports = class UsersRepository {
         (?, ?, ?);
     `;
 
-    const values = [param.email, param.hashedPassword, param.salt];
+    const values = [dao.email, dao.hashedPassword, dao.salt];
     await pool.query(query, values);
   }
 
-  async updateUserPassword(param) {
-    const pool = this.database.pool;
+  async updateUserPassword(dao) {
+    const { pool } = this.database;
     const query = `
       UPDATE
         users
@@ -48,10 +48,11 @@ module.exports = class UsersRepository {
         hashed_password = ?,
         salt = ?
       WHERE
-        email = ?;
+        email = ?
+        AND is_deleted = 0;
     `;
 
-    const values = [param.hashedPassword, param.salt, param.email];
+    const values = [dao.hashedPassword, dao.salt, dao.email];
     const [result] = await pool.query(query, values);
     return result;
   }

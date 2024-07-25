@@ -37,13 +37,14 @@ class LikesController {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
-      const param = { userID, bookID };
-      const status = await this.service.postLike(param);
+      const dto = { userID, bookID };
+      const status = await this.service.postLike(dto);
 
       res.status(status).json({
         message: "좋아요 처리되었습니다.",
       });
     } catch (error) {
+      res.locals.name = this.postLike.name;
       next(error);
     }
   };
@@ -53,11 +54,12 @@ class LikesController {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
-      const param = { userID, bookID };
-      const status = await this.service.deleteLike(param);
+      const dto = { userID, bookID };
+      const status = await this.service.deleteLike(dto);
 
       res.status(status).end();
     } catch (error) {
+      res.locals.name = this.deleteLike.name;
       next(error);
     }
   };

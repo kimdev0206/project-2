@@ -1,40 +1,39 @@
-const { StatusCodes } = require("http-status-codes");
-const HttpError = require("../error/HttpError");
+const HttpError = require("../HttpError");
 const CartBooksRepository = require("../repositories/cart-books.repository");
 
 module.exports = class CartBooksService {
   repository = new CartBooksRepository();
 
-  async postCartBook(param) {
+  async postCartBook(dto) {
     try {
-      await this.repository.insertCartBook(param);
+      await this.repository.insertCartBook(dto);
     } catch (error) {
       const message = "이미 장바구니 담기 처리되었습니다.";
-      throw new HttpError(StatusCodes.CONFLICT, message);
+      throw new HttpError(409, message);
     }
 
-    return StatusCodes.CREATED;
+    return 201;
   }
 
-  async deleteCartBook(param) {
-    const { affectedRows } = await this.repository.deleteCartBook(param);
+  async deleteCartBook(dto) {
+    const { affectedRows } = await this.repository.deleteCartBook(dto);
 
     if (!affectedRows) {
       const message = "이미 장바구니 담기 취소 처리되었습니다.";
-      throw new HttpError(StatusCodes.NOT_FOUND, message);
+      throw new HttpError(404, message);
     }
 
-    return Promise.resolve(StatusCodes.NO_CONTENT);
+    return 204;
   }
 
-  async getCartBooks(param) {
-    const rows = await this.repository.selectCartBooks(param);
+  async getCartBooks(dto) {
+    const rows = await this.repository.selectCartBooks(dto);
 
     if (!rows.length) {
-      const message = param?.bookIDs?.length
-        ? "요청하신 모든 bookIDs 의 도서가 장바구니에 담겨 있지 않습니다."
-        : "장바구니에 도서가 담겨 있지 않습니다.";
-      throw new HttpError(StatusCodes.NOT_FOUND, message);
+      const message = dto?.bookIDs.length
+        ? "요청하신 bookIDs 의 도서가 장바구니에 담겨 있지 않습니다."
+        : "장바구니에 도서가 존재하지 않습니다.";
+      throw new HttpError(404, message);
     }
 
     return rows;

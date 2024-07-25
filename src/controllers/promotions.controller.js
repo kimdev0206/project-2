@@ -22,6 +22,7 @@ class PromotionsController {
         data,
       });
     } catch (error) {
+      res.locals.name = this.getPromotions.name;
       next(error);
     }
   };

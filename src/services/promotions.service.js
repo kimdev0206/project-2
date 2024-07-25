@@ -7,8 +7,8 @@ module.exports = class PromotionsService {
     const rows = await this.repository.selectPromotions();
 
     if (!rows.length) {
-      const message = "프로모션이 존재하지 않습니다.";
-      throw new HttpError(StatusCodes.NOT_FOUND, message);
+      const message = "프로모션 목록이 존재하지 않습니다.";
+      throw new HttpError(404, message);
     }
 
     return rows;

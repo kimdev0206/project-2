@@ -11,7 +11,7 @@ module.exports = class SelectBookCountQueryBuilder extends (
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) DESC, 
         b.published_at DESC
     `;

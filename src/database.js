@@ -27,7 +27,7 @@ class Database {
     this.pool
       .query("SELECT 1;")
       .then(() => console.info("Connected on port 3306 (MySQL)"))
-      .catch((error) => console.error(error.message));
+      .catch((error) => console.info(error));
   }
 }
 

@@ -1,9 +1,9 @@
 const request = require("supertest");
 const { fakerKO: faker } = require("@faker-js/faker");
 const jwt = require("jsonwebtoken");
-const App = require("../../src/app");
+const App = require("../../src/App");
 const database = require("../../src/database");
-const { DeleteUser, DeleteUsers } = require("../modules");
+const { DeleteUser, Delete } = require("../modules");
 
 describe("[컨트롤러 계층의 통합 테스트] 회원 가입", () => {
   const { app } = new App();
@@ -51,9 +51,9 @@ describe("[컨트롤러 계층의 통합 테스트] 회원 가입", () => {
       expect(res.status).toBe(201);
     });
 
-    it("[사후 작업] 회원 레코드 삭제", async () => {
-      const params = { userIDs: [userID] };
-      const { affectedRows } = await DeleteUsers.run(params);
+    it("[사후 작업] 등록된 회원 삭제", async () => {
+      const params = { table: "users", ids: [userID] };
+      const { affectedRows } = await Delete.run(params);
       expect(affectedRows).toBe(1);
     });
   });

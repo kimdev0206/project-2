@@ -1,5 +1,5 @@
 INSERT INTO 
-  `project-2`.promotions (
+  promotions (
     title,
     discount_rate,
     start_at,

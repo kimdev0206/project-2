@@ -1,17 +1,17 @@
 const database = require("../../src/database");
 
-module.exports = class InsertPromotionUser {
+module.exports = class InsertPromotionUsers {
   static async run() {
     const { pool } = database;
     const query = `
       INSERT INTO
         promotion_users (
-          promotion_id,
-          user_id
+          user_id,
+          promotion_id
         )
       SELECT
-        2 AS promotion_id,
-        u.id
+        u.id,
+        2 AS promotion_id
       FROM
         users AS u
       WHERE

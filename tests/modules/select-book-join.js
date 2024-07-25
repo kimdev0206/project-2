@@ -21,14 +21,14 @@ module.exports = class SelectBookJoin {
           MAX(ap.discount_rate)
         ), SIGNED) AS discountedPrice,
         MAX(ap.discount_rate) AS discountRate,
-        b.count,
+        b.amount,
         (
           SELECT
             COUNT(*)
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes,
         b.published_at AS publishedAt
       FROM

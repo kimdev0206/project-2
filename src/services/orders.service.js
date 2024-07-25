@@ -1,48 +1,40 @@
-const { StatusCodes } = require("http-status-codes");
-const HttpError = require("../error/HttpError");
-const BooksRepository = require("../repositories/books.repository");
-const CartBooksRepository = require("../repositories/cart-books.repository");
 const OrdersRepository = require("../repositories/orders.repository");
 const database = require("../database");
+const HttpError = require("../HttpError");
 
 module.exports = class OrdersService {
   repository = new OrdersRepository();
   database = database;
 
-  postOrder = async (param) => {
-    const booksRepository = new BooksRepository();
-    const cartBooksRepository = new CartBooksRepository();
-
-    const pool = this.database.pool;
+  postOrder = async (dto) => {
+    const { pool } = this.database;
     const conn = await pool.getConnection();
 
     try {
       await conn.beginTransaction();
 
-      const { insertId: deliveryID } = await this.repository.insertDelivery(
-        conn,
-        param.delivery
-      );
+      const bookIDs = dto.books.map((book) => book.bookID);
+      const dao = { ...dto, bookIDs };
+      await this.repository.insertOrder(conn, dao);
+      await this.repository.deleteCartBooks(conn, dao);
 
-      const { affectedRows } = await booksRepository.updateCount(conn, param);
-
-      if (!affectedRows) {
-        const message = "남은 수량이 존재하지 않습니다.";
-        throw new HttpError(StatusCodes.NOT_FOUND, message);
-      }
-
-      param.deliveryID = deliveryID;
-      param.bookIDs = param.books.map((book) => book.bookID);
-      await Promise.allSettled([
-        this.repository.insertOrder(conn, param),
-        cartBooksRepository.deleteCartBooks(conn, param),
-      ]);
+      const counts = dto.books.map((book) => book.count);
+      const promises = bookIDs.map((bookID, index) => {
+        const dao = { bookID, count: counts[index] };
+        return this.repository.updateBookAmount(conn, dao);
+      });
+      await Promise.all(promises);
 
       await conn.commit();
 
-      return StatusCodes.CREATED;
+      return 201;
     } catch (error) {
       await conn.rollback();
+
+      if (error.code === "ER_DUP_ENTRY") {
+        const message = `요청하신 orderID(${dto.orderID}) 의 주문이 존재합니다.`;
+        throw new HttpError(409, message);
+      }
 
       throw error;
     } finally {
@@ -50,36 +42,36 @@ module.exports = class OrdersService {
     }
   };
 
-  async getOrders(param) {
-    const rows = await this.repository.selectOrders(param);
+  async getOrders(dto) {
+    const rows = await this.repository.selectOrders(dto);
 
     if (!rows.length) {
-      const message = "주문이 존재하지 않습니다.";
-      throw new HttpError(StatusCodes.NOT_FOUND, message);
+      const message = "주문 목록이 존재하지 않습니다.";
+      throw new HttpError(404, message);
     }
 
     return rows;
   }
 
-  async getOrdersDetail(param) {
-    const [row] = await this.repository.selectOrdersDetail(param);
+  async getOrder(dto) {
+    const [row] = await this.repository.selectOrdersDetail(dto);
 
     if (!row) {
-      const message = "요청하신 deliveryID 의 주문이 존재하지 않습니다.";
-      throw new HttpError(StatusCodes.NOT_FOUND, message);
+      const message = `요청하신 orderID(${dto.orderID}) 의 주문이 존재하지 않습니다.`;
+      throw new HttpError(404, message);
     }
 
     return row.books;
   }
 
-  async deleteOrder(param) {
-    const { affectedRows } = await this.repository.deleteOrder(param);
+  async deleteOrder(dto) {
+    const { affectedRows } = await this.repository.deleteOrder(dto);
 
     if (!affectedRows) {
-      const message = "이미 주문 취소 처리되었습니다.";
-      throw new HttpError(StatusCodes.NOT_FOUND, message);
+      const message = `요청하신 orderID(${dto.orderID}) 는 이미 주문 취소 처리되었습니다.`;
+      throw new HttpError(404, message);
     }
 
-    return StatusCodes.NO_CONTENT;
+    return 204;
   }
 };

@@ -5,11 +5,11 @@ module.exports = class SelectUserIDs {
     const { pool } = database;
     const query = `
       SELECT
-        u.id AS userID
+        id AS userID
       FROM
-        users AS u
+        users
       ORDER BY
-        u.created_at DESC
+        created_at DESC
       LIMIT ?;
     `;
 

@@ -1,15 +1,19 @@
+const {
+  SelectBookCountQueryBuilder,
+  SelectBooksQueryBuilder,
+} = require("../query-builders");
 const database = require("../database");
 
 module.exports = class BooksRepository {
   database = database;
 
-  async selectBooks(param) {
-    const pool = this.database.pool;
-    let query = `
+  async selectBooks(dao) {
+    const builder = new SelectBooksQueryBuilder();
+    const baseQuery = `
       SELECT
         b.id,
         b.title,
-        b.img_id AS imgID,
+        b.id AS imgID,
         b.summary,
         b.author,
         b.price,
@@ -35,81 +39,33 @@ module.exports = class BooksRepository {
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes
       FROM
         books AS b
     `;
 
-    let conditions = [];
-    let values = [];
+    builder
+      .setBaseQuery(baseQuery)()
+      .setCategoryID(dao.categoryID)
+      .setIsNew(dao.isNew)
+      .setKeyword(dao)
+      .setIsBest(dao.isBest)
+      .setPaging(dao)
+      .build();
 
-    if (param.categoryID) {
-      conditions.push("b.category_id = ?");
-      values.push(param.categoryID);
-    }
-
-    if (param.isNew) {
-      conditions.push(
-        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
-      );
-    }
-
-    if (param.keyword) {
-      let condition = [];
-
-      if (param.isTitle) {
-        condition.push("b.title LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isSummary) {
-        condition.push("b.summary LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isContents) {
-        condition.push("b.contents LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isDetail) {
-        condition.push("b.detail LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      condition.length && conditions.push(`(${condition.join(" OR ")})`);
-    }
-
-    if (conditions.length) {
-      query += `
-      WHERE
-      ${conditions.join(" AND ")}
-      `;
-    }
-
-    if (param.isBest) {
-      query += `
-        ORDER BY
-          likes DESC,
-          b.pub_date DESC
-      `;
-    }
-
-    query += "LIMIT ? OFFSET ?;";
-    values.push(param.limit, param.offset);
-
-    const [result] = await pool.query(query, values);
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
 
-  async selectBooksWithAuthorize(param) {
-    const pool = this.database.pool;
-    let query = `
+  async selectAuthorizedBooks(dao) {
+    const builder = new SelectBooksQueryBuilder();
+    const baseQuery = `
       SELECT
         b.id,
         b.title,
-        b.img_id AS imgID,
+        b.id AS imgID,
         b.summary,
         b.author,
         b.price,
@@ -141,145 +97,56 @@ module.exports = class BooksRepository {
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes
       FROM
         books AS b
     `;
 
-    let conditions = [];
-    let values = [param.userID, param.userID];
+    builder
+      .setBaseQuery(baseQuery)([dao.userID, dao.userID])
+      .setCategoryID(dao.categoryID)
+      .setIsNew(dao.isNew)
+      .setKeyword(dao)
+      .setIsBest(dao.isBest)
+      .setPaging(dao)
+      .build();
 
-    if (param.categoryID) {
-      conditions.push("b.category_id = ?");
-      values.push(param.categoryID);
-    }
-
-    if (param.isNew) {
-      conditions.push(
-        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
-      );
-    }
-
-    if (param.keyword) {
-      let condition = [];
-
-      if (param.isTitle) {
-        condition.push("b.title LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isSummary) {
-        condition.push("b.summary LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isContents) {
-        condition.push("b.contents LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isDetail) {
-        condition.push("b.detail LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      condition.length && conditions.push(`(${condition.join(" OR ")})`);
-    }
-
-    if (conditions.length) {
-      query += `
-      WHERE
-      ${conditions.join(" AND ")}
-      `;
-    }
-
-    if (param.isBest) {
-      query += `
-        ORDER BY
-          likes DESC,
-          b.pub_date DESC
-      `;
-    }
-
-    query += "LIMIT ? OFFSET ?;";
-    values.push(param.limit, param.offset);
-
-    const [result] = await pool.query(query, values);
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
 
-  async selectBooksCount(param) {
-    const pool = this.database.pool;
-    let query = `
+  async selectBookCount(dao) {
+    const builder = new SelectBookCountQueryBuilder();
+    const baseQuery = `
       SELECT
-        COUNT(*) AS count
+        COUNT(*) AS counted
       FROM
         books AS b
     `;
 
-    let conditions = [];
-    let values = [];
+    builder
+      .setBaseQuery(baseQuery)()
+      .setCategoryID(dao.categoryID)
+      .setIsNew(dao.isNew)
+      .setKeyword(dao)
+      .setIsBest(dao.isBest)
+      .build();
 
-    if (param.categoryID) {
-      conditions.push("b.category_id = ?");
-      values.push(param.categoryID);
-    }
-
-    if (param.isNew) {
-      conditions.push(
-        "b.pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()"
-      );
-    }
-
-    if (param.keyword) {
-      let condition = [];
-
-      if (param.isTitle) {
-        condition.push("b.title LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isSummary) {
-        condition.push("b.summary LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isContents) {
-        condition.push("b.contents LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      if (param.isDetail) {
-        condition.push("b.detail LIKE ?");
-        values.push(`%${param.keyword}%`);
-      }
-
-      condition.length && conditions.push(`(${condition.join(" OR ")})`);
-    }
-
-    if (conditions.length) {
-      query += `
-        WHERE
-          ${conditions.join(" AND ")}
-      `;
-    }
-
-    query += ";";
-
-    const [result] = await pool.query(query, values);
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
 
-  async selectBook(param) {
-    const pool = this.database.pool;
+  async selectBook(dao) {
+    const { pool } = this.database;
     const query = `
       SELECT
         b.id,
         b.title,
-        c.id AS categoryID,
-        c.category,
-        b.img_id AS imgID,
+        b.category_id AS categoryID,
+        b.id AS imgID,
         b.form,
         b.isbn,
         b.summary,
@@ -288,55 +155,42 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            b.category_id = ap.category_id
-        )), SIGNED) AS discountedPrice,
-        (
-        	SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            b.category_id = ap.category_id
-        ) AS discountRate,
-        b.count,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate,
+        b.amount,
         (
           SELECT
             COUNT(*)
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes,
-        b.pub_date AS pubDate
+        b.published_at AS publishedAt
       FROM
-        categories AS c
-      LEFT JOIN
         books AS b
-        ON c.id = b.category_id
+      LEFT JOIN
+        active_promotions AS ap
+        ON b.category_id = ap.category_id
       WHERE
         b.id = ?;
     `;
 
-    const values = [param.bookID];
+    const values = [dao.bookID];
     const [result] = await pool.query(query, values);
     return result;
   }
 
-  async selectBookWithAuthorize(param) {
-    const pool = this.database.pool;
+  async selectAuthorizedBook(dao) {
+    const { pool } = this.database;
     const query = `
       SELECT
         b.id,
         b.title,
-        c.id AS categoryID,
-        c.category,
-        b.img_id AS imgID,
+        b.category_id AS categoryID,
+        b.id AS imgID,
         b.form,
         b.isbn,
         b.summary,
@@ -345,36 +199,18 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            (
-              ap.user_id = ?
-              OR b.category_id = ap.category_id
-            )
-        )), SIGNED) AS discountedPrice,
-        (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            (
-              ap.user_id = ?
-              OR b.category_id = ap.category_id
-            )
-        ) AS discountRate,
-        b.count,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate,
+        b.amount,
         (
           SELECT
             COUNT(*)
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes,
         (
           SELECT EXISTS (
@@ -384,37 +220,21 @@ module.exports = class BooksRepository {
               likes
             WHERE
               user_id = ?
-              AND liked_book_id = b.id
+              AND book_id = b.id
           )
         ) AS liked,
-        b.pub_date AS pubDate
+        b.published_at AS publishedAt
       FROM
-        categories AS c
-      LEFT JOIN
         books AS b
-        ON c.id = b.category_id
+      LEFT JOIN
+        active_promotions AS ap
+        ON (ap.user_id = ? OR b.category_id = ap.category_id)
       WHERE
         b.id = ?;
     `;
 
-    const values = [param.userID, param.userID, param.userID, param.bookID];
+    const values = [dao.userID, dao.userID, dao.bookID];
     const [result] = await pool.query(query, values);
-    return result;
-  }
-
-  async updateCount(conn, param) {
-    const query = `
-      UPDATE
-        books
-      SET
-        count = count - 1
-      WHERE
-        count > 0
-        AND id IN ( ? );
-    `;
-
-    const values = [param.books.map((book) => book.bookID)];
-    const [result] = await conn.query(query, values);
     return result;
   }
 };

@@ -1,61 +1,60 @@
 const { randomBytes, pbkdf2 } = require("node:crypto");
 const { promisify } = require("node:util");
-const { StatusCodes } = require("http-status-codes");
 const jwt = require("jsonwebtoken");
-const HttpError = require("../error/HttpError");
 const UsersRepository = require("../repositories/users.repository");
+const HttpError = require("../HttpError");
 
 module.exports = class UsersService {
   bufLen = 16; // NOTE: 최종 hashedPassword 길이가 아닙니다.
   iterations = 100_000;
   repository = new UsersRepository();
 
-  async signUp(param) {
-    const [row] = await this.repository.selectUserByEmail(param);
+  async signUp(dto) {
+    const [row] = await this.repository.selectUser(dto.email);
 
     if (row) {
-      const message = "동일한 email 의 회원이 존재합니다.";
-      throw new HttpError(StatusCodes.BAD_REQUEST, message);
+      const message = `요청하신 email(${dto.email}) 의 회원이 존재합니다.`;
+      throw new HttpError(400, message);
     }
 
-    const salt = (await promisify(randomBytes)(this.bufLen)).toString("base64");
-    const hashedPassword = (
-      await promisify(pbkdf2)(
-        param.password,
-        salt,
-        this.iterations,
-        this.bufLen,
-        "sha512"
-      )
-    ).toString("base64");
+    const buf = await promisify(randomBytes)(this.bufLen);
+    const salt = buf.toString("base64");
 
-    param = { ...param, salt, hashedPassword };
-    await this.repository.insertUser(param);
+    const derivedKey = await promisify(pbkdf2)(
+      dto.password,
+      salt,
+      this.iterations,
+      this.bufLen,
+      "sha512"
+    );
+    const hashedPassword = derivedKey.toString("base64");
 
-    return Promise.resolve(StatusCodes.CREATED);
+    const dao = { ...dto, salt, hashedPassword };
+    await this.repository.insertUser(dao);
+
+    return 201;
   }
 
-  async logIn(param) {
-    const [row] = await this.repository.selectUserByEmail(param);
+  async logIn(dto) {
+    const [row] = await this.repository.selectUser(dto.email);
 
     if (!row) {
-      const message = "요청하신 email 의 회원이 존재하지 않습니다.";
-      throw new HttpError(StatusCodes.BAD_REQUEST, message);
+      const message = `요청하신 email(${dto.email}) 의 회원이 존재하지 않습니다.`;
+      throw new HttpError(400, message);
     }
 
-    const hashedPassword = (
-      await promisify(pbkdf2)(
-        param.password,
-        row.salt,
-        this.iterations,
-        this.bufLen,
-        "sha512"
-      )
-    ).toString("base64");
+    const derivedKey = await promisify(pbkdf2)(
+      dto.password,
+      row.salt,
+      this.iterations,
+      this.bufLen,
+      "sha512"
+    );
+    const hashedPassword = derivedKey.toString("base64");
 
     if (row.hashedPassword !== hashedPassword) {
       const message = "요청하신 password 가 일치하지 않습니다.";
-      throw new HttpError(StatusCodes.UNAUTHORIZED, message);
+      throw new HttpError(401, message);
     }
 
     const accessToken = jwt.sign(
@@ -81,33 +80,34 @@ module.exports = class UsersService {
     };
   }
 
-  async postResetPassword(param) {
-    const [row] = await this.repository.selectUserByEmail(param);
+  async postResetPassword(dto) {
+    const [row] = await this.repository.selectUser(dto.email);
 
     if (!row) {
-      const message = "요청하신 email 의 회원이 존재하지 않습니다.";
-      throw new HttpError(StatusCodes.BAD_REQUEST, message);
+      const message = `요청하신 email(${dto.email}) 의 회원이 존재하지 않습니다.`;
+      throw new HttpError(400, message);
     }
   }
 
-  async putResetPassword(param) {
-    const salt = (await promisify(randomBytes)(this.bufLen)).toString("base64");
-    const hashedPassword = (
-      await promisify(pbkdf2)(
-        param.password,
-        salt,
-        this.iterations,
-        this.bufLen,
-        "sha512"
-      )
-    ).toString("base64");
+  async putResetPassword(dto) {
+    const buf = await promisify(randomBytes)(this.bufLen);
+    const salt = buf.toString("base64");
 
-    param = { ...param, salt, hashedPassword };
-    const { affectedRows } = await this.repository.updateUserPassword(param);
+    const derivedKey = await promisify(pbkdf2)(
+      dto.password,
+      salt,
+      this.iterations,
+      this.bufLen,
+      "sha512"
+    );
+    const hashedPassword = derivedKey.toString("base64");
+
+    const dao = { ...dto, salt, hashedPassword };
+    const { affectedRows } = await this.repository.updateUserPassword(dao);
 
     if (!affectedRows) {
-      const message = "요청하신 email 의 회원이 존재하지 않습니다.";
-      throw new HttpError(StatusCodes.BAD_REQUEST, message);
+      const message = `요청하신 email(${dto.email}) 의 회원이 존재하지 않습니다.`;
+      throw new HttpError(400, message);
     }
   }
 

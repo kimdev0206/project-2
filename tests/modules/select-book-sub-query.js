@@ -39,14 +39,14 @@ module.exports = class SelectBookSubQuery {
               OR b.category_id = ap.category_id
             )
         ) AS discountRate,
-        b.count,
+        b.amount,
         (
           SELECT
             COUNT(*)
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes,
         (
           SELECT EXISTS (
@@ -56,7 +56,7 @@ module.exports = class SelectBookSubQuery {
               likes
             WHERE
               user_id = ?
-              AND liked_book_id = b.id
+              AND book_id = b.id
           )
         ) AS liked,
         b.published_at AS publishedAt

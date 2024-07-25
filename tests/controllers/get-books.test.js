@@ -3,12 +3,9 @@ const { BookCategoryID } = require("../../src/enums");
 const App = require("../../src/App");
 const database = require("../../src/database");
 const {
-  DeleteBooks,
-  DeleteUsers,
+  Delete,
   InsertBooks,
   InsertLikes,
-  InsertPromotionCategory,
-  InsertPromotionUser,
   InsertUsers,
   SelectBookCount,
   SelectBookIDs,
@@ -58,16 +55,6 @@ describe("[컨트롤러 계층의 통합 테스트] 도서 목록 조회", () =>
         expect(rows.length).toBe(userSize);
 
         userIDs = rows.map((row) => row.userID);
-      });
-
-      it("[사전 작업] 프로모션 적용", async () => {
-        const params = { categoryID };
-        const results = await Promise.allSettled([
-          InsertPromotionCategory.run(params),
-          InsertPromotionUser.run(),
-        ]);
-
-        results.validatePromises();
       });
 
       it("[사전 작업] 좋아요", async () => {
@@ -331,14 +318,14 @@ describe("[컨트롤러 계층의 통합 테스트] 도서 목록 조회", () =>
 
     describe("[사후 작업]", () => {
       it("[사후 작업] 등록된 도서 삭제", async () => {
-        const params = { bookIDs };
-        const { affectedRows } = await DeleteBooks.run(params);
+        const params = { table: "books", ids: bookIDs };
+        const { affectedRows } = await Delete.run(params);
         expect(affectedRows).toBe(bookSize);
       });
 
       it("[사후 작업] 등록된 회원 삭제", async () => {
-        const params = { userIDs };
-        const { affectedRows } = await DeleteUsers.run(params);
+        const params = { table: "users", ids: userIDs };
+        const { affectedRows } = await Delete.run(params);
         expect(affectedRows).toBe(userSize);
       });
     });

@@ -1,28 +1,28 @@
+const { SelectCartBooksBuilder } = require("../query-builders");
 const database = require("../database");
 
 module.exports = class CartBooksRepository {
   database = database;
 
-  async insertCartBook(param) {
-    const pool = this.database.pool;
+  async insertCartBook(dao) {
+    const { pool } = this.database;
     const query = `
       INSERT INTO
-        cart_books
-        (
-          book_id,
+        cart_books (
           user_id,
+          book_id,
           count
         )
       VALUES
         (?, ?, ?);
     `;
 
-    const values = [param.bookID, param.userID, param.count];
+    const values = [dao.userID, dao.bookID, dao.count];
     await pool.query(query, values);
   }
 
-  async deleteCartBook(param) {
-    const pool = this.database.pool;
+  async deleteCartBook(dao) {
+    const { pool } = this.database;
     const query = `
       DELETE
       FROM
@@ -32,28 +32,14 @@ module.exports = class CartBooksRepository {
         AND book_id = ?;
     `;
 
-    const values = [param.userID, param.bookID];
+    const values = [dao.userID, dao.bookID];
     const [result] = await pool.query(query, values);
     return result;
   }
 
-  async deleteCartBooks(conn, param) {
-    let query = `
-      DELETE
-      FROM
-        cart_books
-      WHERE
-        user_id = ?
-        AND book_id IN ( ? );
-    `;
-
-    const values = [param.userID, param.bookIDs];
-    await conn.query(query, values);
-  }
-
-  async selectCartBooks(param) {
-    const pool = this.database.pool;
-    let query = `
+  async selectCartBooks(dao) {
+    const builder = new SelectCartBooksBuilder();
+    const baseQuery = `
       SELECT
         cb.book_id AS bookID,
         b.title,
@@ -68,29 +54,14 @@ module.exports = class CartBooksRepository {
         ON b.id = cb.book_id
     `;
 
-    let conditions = [];
-    let values = [];
+    builder
+      .setBaseQuery(baseQuery)()
+      .setUserID(dao.userID)
+      .setBookIDs(dao.bookIDs)
+      .build();
 
-    if (param.userID) {
-      conditions.push("cb.user_id = ?");
-      values.push(param.userID);
-    }
-
-    if (param.bookIDs) {
-      conditions.push("cb.book_id IN ( ? )");
-      values.push(param.bookIDs);
-    }
-
-    if (conditions.length) {
-      query += `
-        WHERE
-          ${conditions.join(" AND ")}
-      `;
-    }
-
-    query += ";";
-
-    const [result] = await pool.query(query, values);
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
 };

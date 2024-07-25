@@ -3,108 +3,115 @@ const database = require("../database");
 module.exports = class OrdersRepository {
   database = database;
 
-  async insertDelivery(conn, param) {
-    const query = `
-      INSERT INTO 
-        deliveries
-        (
-          address,
-          receiver,
-          contact
-        )
-      VALUES
-        (?, ?, ?);
-    `;
-
-    const values = [param.address, param.receiver, param.contact];
-    const [result] = await conn.query(query, values);
-    return result;
-  }
-
-  async insertOrder(conn, param) {
+  async insertOrder(conn, dao) {
     const query = `
       INSERT INTO
-        orders
-        (
+        orders (
+          order_id,
           user_id,
-          delivery_id,
+          delivery,
           books,
           main_book_title,
           total_count,
           total_price
         )
       VALUES
-        (?, ?, ?, ?, ?, ?);
+        (?, ?, ?, ?, ?, ?, ?);
     `;
 
     const values = [
-      param.userID,
-      param.deliveryID,
-      JSON.stringify(param.books),
-      param.mainBookTitle,
-      param.totalCount,
-      param.totalPrice,
+      dao.orderID,
+      dao.userID,
+      JSON.stringify(dao.delivery),
+      JSON.stringify(dao.books),
+      dao.mainBookTitle,
+      dao.totalCount,
+      dao.totalPrice,
     ];
-
     await conn.query(query, values);
   }
 
-  async selectOrders(param) {
-    const pool = this.database.pool;
+  async selectOrders(dao) {
+    const { pool } = this.database;
     const query = `
       SELECT
-        d.id AS deliveryID,
-        d.address,
-        d.receiver,
-        d.contact,
-        o.main_book_title AS mainBookTitle,
-        o.total_price AS totalPrice,
-        o.total_count AS totalCount,
-        o.created_at AS createdAt
+        order_id AS orderID,
+        delivery,
+        main_book_title AS mainBookTitle,
+        total_price AS totalPrice,
+        total_count AS totalCount,
+        created_at AS createdAt
       FROM
-        deliveries AS d
-      LEFT JOIN
-        orders AS o
-        ON d.id = o.delivery_id
+        orders
       WHERE
-        o.user_id = ?;
+        user_id = ?;
     `;
 
-    const values = [param.userID];
+    const values = [dao.userID];
     const [result] = await pool.query(query, values);
     return result;
   }
 
-  async selectOrdersDetail(param) {
-    const pool = this.database.pool;
+  async selectOrdersDetail(dao) {
+    const { pool } = this.database;
     const query = `
       SELECT
         books AS books
       FROM
         orders
       WHERE
-        user_id = ?
-        AND delivery_id = ?;
+        order_id = ?
+        AND user_id = ?;
     `;
 
-    const values = [param.userID, param.deliveryID];
+    const values = [dao.orderID, dao.userID];
     const [result] = await pool.query(query, values);
     return result;
   }
 
-  async deleteOrder(param) {
-    const pool = this.database.pool;
+  async updateBookAmount(conn, dao) {
+    const query = `
+      UPDATE
+        books
+      SET
+        amount = amount - ?
+      WHERE
+        amount >= amount + ?
+        AND id = ?;
+    `;
+
+    const values = [dao.count, dao.count, dao.bookID];
+    const [result] = await conn.query(query, values);
+    return result;
+  }
+
+  async deleteOrder(dao) {
+    const { pool } = this.database;
     const query = `
       DELETE
       FROM
         orders
       WHERE
-        user_id = ?
-        AND delivery_id = ?;
+        order_id = ?
+        AND user_id = ?;
     `;
 
-    const values = [param.userID, param.deliveryID];
+    const values = [dao.orderID, dao.userID];
     const [result] = await pool.query(query, values);
     return result;
+  }
+
+  async deleteCartBooks(conn, dao) {
+    const query = `
+      DELETE
+      FROM
+        cart_books
+      WHERE
+        user_id = ?
+        AND book_id IN ( ? );
+    `;
+
+    const values = [dao.userID, dao.bookIDs];
+    await conn.query(query, values);
   }
 };

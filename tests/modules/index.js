@@ -3,8 +3,8 @@ const Delete = require("./delete");
 const InsertBooks = require("./insert-books");
 const InsertLikes = require("./insert-likes");
 const InsertOrders = require("./insert-orders");
-const InsertPromotionCategory = require("./insert-promotion-category");
-const InsertPromotionUser = require("./insert-promotion-user");
+const InsertPromotionCategories = require("./insert-promotion-categories");
+const InsertPromotionUsers = require("./insert-promotion-users");
 const InsertUsers = require("./insert-users");
 const SelectBookCount = require("./select-book-count");
 const SelectBookIDs = require("./select-book-ids");
@@ -21,8 +21,8 @@ module.exports = {
   InsertBooks,
   InsertLikes,
   InsertOrders,
-  InsertPromotionCategory,
-  InsertPromotionUser,
+  InsertPromotionCategories,
+  InsertPromotionUsers,
   InsertUsers,
   SelectBookCount,
   SelectBookIDs,

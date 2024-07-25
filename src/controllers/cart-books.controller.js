@@ -48,13 +48,14 @@ class CartBooksController {
       const { bookID } = req.params;
       const { count } = req.body;
 
-      const param = { userID, bookID, count };
-      const status = await this.service.postCartBook(param);
+      const dto = { userID, bookID, count };
+      const status = await this.service.postCartBook(dto);
 
       res.status(status).json({
         message: "장바구니 담기 처리되었습니다.",
       });
     } catch (error) {
+      res.locals.name = this.postCartBook.name;
       next(error);
     }
   };
@@ -64,11 +65,12 @@ class CartBooksController {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
-      const param = { userID, bookID };
-      const status = await this.service.deleteCartBook(param);
+      const dto = { userID, bookID };
+      const status = await this.service.deleteCartBook(dto);
 
       res.status(status).end();
     } catch (error) {
+      res.locals.name = this.deleteCartBook.name;
       next(error);
     }
   };
@@ -78,13 +80,14 @@ class CartBooksController {
       const { userID } = req.decodedToken;
       const { bookIDs } = req.body;
 
-      const param = { userID, bookIDs };
-      const data = await this.service.getCartBooks(param);
+      const dto = { userID, bookIDs };
+      const data = await this.service.getCartBooks(dto);
 
       res.json({
         data,
       });
     } catch (error) {
+      res.locals.name = this.getCartBooks.name;
       next(error);
     }
   };

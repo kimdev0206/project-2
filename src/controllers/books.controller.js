@@ -22,7 +22,7 @@ class BooksController {
       verifyAccessToken,
       validateBooks,
       validateError,
-      this.getBooksWithAuthorize
+      this.getAuthorizedBooks
     );
     this.router.get(this.path, validateBooks, validateError, this.getBooks);
 
@@ -31,7 +31,7 @@ class BooksController {
       verifyAccessToken,
       validateBookID,
       validateError,
-      this.getBookWithAuthorize
+      this.getAuthorizedBook
     );
     this.router.get(
       `${this.path}/:bookID`,
@@ -56,7 +56,7 @@ class BooksController {
         keyword,
       } = req.query;
 
-      const param = {
+      const dto = {
         categoryID,
         isNew,
         isBest,
@@ -68,18 +68,19 @@ class BooksController {
         page,
         keyword,
       };
-      const { meta, data } = await this.service.getBooks(param);
+      const { meta, data } = await this.service.getBooks(dto);
 
       res.json({
         meta,
         data,
       });
     } catch (error) {
+      res.locals.name = this.getBooks.name;
       next(error);
     }
   };
 
-  getBooksWithAuthorize = async (req, res, next) => {
+  getAuthorizedBooks = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const {
@@ -95,7 +96,7 @@ class BooksController {
         keyword,
       } = req.query;
 
-      const param = {
+      const dto = {
         userID,
         categoryID,
         isNew,
@@ -108,13 +109,14 @@ class BooksController {
         page,
         keyword,
       };
-      const { meta, data } = await this.service.getBooks(param);
+      const { meta, data } = await this.service.getBooks(dto);
 
       res.json({
         meta,
         data,
       });
     } catch (error) {
+      res.locals.name = this.getAuthorizedBooks.name;
       next(error);
     }
   };
@@ -123,29 +125,33 @@ class BooksController {
     try {
       const { bookID } = req.params;
 
-      const param = { bookID };
-      const data = await this.service.getBook(param);
+      const dto = { bookID };
+      const { meta, data } = await this.service.getBook(dto);
 
       res.json({
+        meta,
         data,
       });
     } catch (error) {
+      res.locals.name = this.getBook.name;
       next(error);
     }
   };
 
-  getBookWithAuthorize = async (req, res, next) => {
+  getAuthorizedBook = async (req, res, next) => {
     try {
       const { userID } = req.decodedToken;
       const { bookID } = req.params;
 
-      const param = { userID, bookID };
-      const data = await this.service.getBook(param);
+      const dto = { userID, bookID };
+      const { meta, data } = await this.service.getBook(dto);
 
       res.json({
+        meta,
         data,
       });
     } catch (error) {
+      res.locals.name = this.getAuthorizedBook.name;
       next(error);
     }
   };

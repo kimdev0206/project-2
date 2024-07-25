@@ -5,11 +5,11 @@ module.exports = class SelectBookIDs {
     const { pool } = database;
     const query = `
       SELECT
-        b.id AS bookID
+        id AS bookID
       FROM
-        books AS b
+        books
       ORDER BY
-        b.created_at DESC
+        created_at DESC
       LIMIT ?;
     `;
 

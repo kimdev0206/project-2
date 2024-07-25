@@ -4,7 +4,7 @@ module.exports = class PromotionsRepository {
   database = database;
 
   async selectPromotions() {
-    const pool = this.database.pool;
+    const { pool } = this.database;
     const query = `
       SELECT
         id,

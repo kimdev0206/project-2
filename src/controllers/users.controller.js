@@ -41,13 +41,14 @@ class UsersController {
     try {
       const { email, password } = req.body;
 
-      const param = { email, password };
-      const status = await this.service.signUp(param);
+      const dto = { email, password };
+      const status = await this.service.signUp(dto);
 
       res.status(status).json({
         message: "회원가입 되었습니다.",
       });
     } catch (error) {
+      res.locals.name = this.signUp.name;
       next(error);
     }
   };
@@ -56,8 +57,8 @@ class UsersController {
     try {
       const { email, password } = req.body;
 
-      const param = { email, password };
-      const { accessToken, refreshToken } = await this.service.logIn(param);
+      const dto = { email, password };
+      const { accessToken, refreshToken } = await this.service.logIn(dto);
 
       res.header("Access-Token", accessToken);
       res.header("Refresh-Token", refreshToken);
@@ -65,6 +66,7 @@ class UsersController {
         message: "로그인 되었습니다.",
       });
     } catch (error) {
+      res.locals.name = this.logIn.name;
       next(error);
     }
   };
@@ -73,14 +75,15 @@ class UsersController {
     try {
       const { email } = req.body;
 
-      const param = { email };
-      await this.service.postResetPassword(param);
+      const dto = { email };
+      await this.service.postResetPassword(dto);
 
       res.json({
         message: "비밀번호 초기화가 요청 되었습니다.",
         email,
       });
     } catch (error) {
+      res.locals.name = this.postResetPassword.name;
       next(error);
     }
   };
@@ -89,13 +92,14 @@ class UsersController {
     try {
       const { email, password } = req.body;
 
-      const param = { email, password };
-      await this.service.putResetPassword(param);
+      const dto = { email, password };
+      await this.service.putResetPassword(dto);
 
       res.json({
         message: "비밀번호 초기화 되었습니다.",
       });
     } catch (error) {
+      res.locals.name = this.putResetPassword.name;
       next(error);
     }
   };
@@ -110,6 +114,7 @@ class UsersController {
         message: "접근 토큰이 재발급 되었습니다.",
       });
     } catch (error) {
+      res.locals.name = this.getAccessToken.name;
       next(error);
     }
   };

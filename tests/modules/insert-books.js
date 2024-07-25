@@ -38,8 +38,8 @@ module.exports = class InsertBooks {
           pages,
           contents,
           price,
-          count,
-          pub_date
+          amount,
+          published_at
         )
       VALUES
         ?;

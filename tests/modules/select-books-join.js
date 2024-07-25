@@ -22,7 +22,7 @@ module.exports = class SelectBooksJoin {
           FROM
             likes
           WHERE
-            liked_book_id = b.id
+            book_id = b.id
         ) AS likes
       FROM
         books AS b

@@ -1,26 +1,19 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
-const { BookCategoryID } = require("../../src/enums");
 const App = require("../../src/App");
 const database = require("../../src/database");
 const {
-  DeleteBooks,
-  DeleteUsers,
+  Delete,
   InsertBooks,
   InsertLikes,
   InsertUsers,
-  InsertPromotionCategory,
-  InsertPromotionUser,
   SelectBookIDs,
   SelectBookJoin,
   SelectBookSubQuery,
   SelectUserIDs,
 } = require("../modules");
-const { getRandomKey } = require("../utils");
 
 describe("[컨트롤러 계층의 통합 테스트] 도서 상세 조회", () => {
   const { app } = new App();
-  const categoryID = getRandomKey(BookCategoryID);
   const bookSize = 1;
   const userSize = 10_000;
   let userIDs, bookID, userID;
@@ -57,16 +50,6 @@ describe("[컨트롤러 계층의 통합 테스트] 도서 상세 조회", () =>
       userID = userIDs.getRandomValue();
     });
 
-    it("[사전 작업] 프로모션 적용", async () => {
-      const params = { categoryID };
-      const results = await Promise.allSettled([
-        InsertPromotionCategory.run(params),
-        InsertPromotionUser.run(),
-      ]);
-
-      results.validatePromises();
-    });
-
     it("[사전 작업] 좋아요", async () => {
       const params = { bookIDs: [bookID], userIDs };
       const { affectedRows } = await InsertLikes.run(params);
@@ -88,7 +71,7 @@ describe("[컨트롤러 계층의 통합 테스트] 도서 상세 조회", () =>
     });
 
     it("[선정: 조인 방식]", async () => {
-      const accessToken = jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY);
+      const accessToken = userID.makeJWT();
       const res = await request(app)
         .get("/api/books" + `/${bookID}/authorized`)
         .set("Access-Token", accessToken);
@@ -99,14 +82,14 @@ describe("[컨트롤러 계층의 통합 테스트] 도서 상세 조회", () =>
 
   describe("[사후 작업]", () => {
     it("[사후 작업] 등록된 도서 삭제", async () => {
-      const params = { bookIDs: [bookID] };
-      const { affectedRows } = await DeleteBooks.run(params);
+      const params = { table: "books", ids: [bookID] };
+      const { affectedRows } = await Delete.run(params);
       expect(affectedRows).toBe(bookSize);
     });
 
     it("[사후 작업] 등록된 회원 삭제", async () => {
-      const params = { userIDs };
-      const { affectedRows } = await DeleteUsers.run(params);
+      const params = { table: "users", ids: userIDs };
+      const { affectedRows } = await Delete.run(params);
       expect(affectedRows).toBe(userSize);
     });
   });

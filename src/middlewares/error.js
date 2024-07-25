@@ -1,7 +1,8 @@
 module.exports = function error(error, req, res, _) {
   let log = [
-    error,
+    res.locals.name && `At method (${res.locals.name})`,
     req.decodedToken && `with userID (${req.decodedToken.userID})`,
+    error,
   ];
 
   console.log(log.join(" "));
