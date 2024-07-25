@@ -1,5 +1,4 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
 const App = require("../../src/App");
 const database = require("../../src/database");
 const {
@@ -65,7 +64,7 @@ describe("[컨트롤러 계층의 통합 테스트] 주문 목록 조회", () =>
 
   describe("주문 목록 조회", () => {
     it("주문 목록 조회", async () => {
-      const accessToken = jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY);
+      const accessToken = userID.makeJWT();
       const res = await request(app)
         .get("/api/orders")
         .set("Access-Token", accessToken);

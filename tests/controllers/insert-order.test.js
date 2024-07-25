@@ -1,5 +1,4 @@
 const request = require("supertest");
-const jwt = require("jsonwebtoken");
 const App = require("../../src/App");
 const database = require("../../src/database");
 const {
@@ -77,9 +76,7 @@ describe("[컨트롤러 계층의 통합 테스트] 주문", () => {
 
     it("동시 주문", async () => {
       const orderIDs = makeOrderIDs(userSize);
-      const accessTokens = userIDs.map((userID) =>
-        jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY)
-      );
+      const accessTokens = userIDs.map((userID) => userID.makeJWT());
       const promises = orderIDs.map((orderID, index) =>
         request(app)
           .post("/api/orders" + `/${orderID}`)
@@ -121,7 +118,7 @@ describe("[컨트롤러 계층의 통합 테스트] 주문", () => {
 
     it("[사전 작업] 주문", async () => {
       const [userID] = userIDs;
-      const accessToken = jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY);
+      const accessToken = userID.makeJWT();
       const res = await request(app)
         .post("/api/orders" + `/${orderID}`)
         .set("Access-Token", accessToken)
@@ -131,7 +128,7 @@ describe("[컨트롤러 계층의 통합 테스트] 주문", () => {
 
     it("중복 주문", async () => {
       const [userID] = userIDs;
-      const accessToken = jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY);
+      const accessToken = userID.makeJWT();
       const res = await request(app)
         .post("/api/orders" + `/${orderID}`)
         .set("Access-Token", accessToken)

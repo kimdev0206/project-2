@@ -1,6 +1,5 @@
 const { randomBytes, pbkdf2 } = require("node:crypto");
 const { promisify } = require("node:util");
-const jwt = require("jsonwebtoken");
 const UsersRepository = require("../repositories/users.repository");
 const HttpError = require("../HttpError");
 
@@ -57,22 +56,8 @@ module.exports = class UsersService {
       throw new HttpError(401, message);
     }
 
-    const accessToken = jwt.sign(
-      { userID: row.userID },
-      process.env.JWT_PRIVATE_KEY,
-      {
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-        issuer: "Yongki Kim",
-      }
-    );
-    const refreshToken = jwt.sign(
-      { userID: row.userID },
-      process.env.JWT_PRIVATE_KEY,
-      {
-        expiresIn: "15d",
-        issuer: "Yongki Kim",
-      }
-    );
+    const accessToken = row.userID.makeJWT();
+    const refreshToken = row.userID.makeJWT("15d");
 
     return {
       accessToken,
@@ -112,11 +97,6 @@ module.exports = class UsersService {
   }
 
   async getAccessToken(userID) {
-    const accessToken = jwt.sign({ userID }, process.env.JWT_PRIVATE_KEY, {
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
-      issuer: "Yongki Kim",
-    });
-
-    return accessToken;
+    return userID.makeJWT();
   }
 };
