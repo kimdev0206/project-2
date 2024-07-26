@@ -34,7 +34,7 @@ module.exports = class SelectBooksJoin {
     builder
       .setBaseQuery(baseQuery)()
       .setCategoryID(params.categoryID)
-      .setIsNew(params.isNew)
+      .setIsNewPublished(params.isNew)
       .setKeyword(params)
       .setGrouping()
       .setIsBest(params.isBest)

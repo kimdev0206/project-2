@@ -6,6 +6,10 @@
     - [회원 도메인 ERD](#회원-도메인-erd)
     - [주문 도메인 ERD](#주문-도메인-erd)
     - [프로모션 도메인 ERD](#프로모션-도메인-erd)
+<<<<<<< Updated upstream
+=======
+    - [회원 도메인 ERD](#회원-도메인-erd)
+>>>>>>> Stashed changes
   - [시스템 설계도](#시스템-설계도)
   - [API 명세 (링크)](#api-명세-링크)
   - [실행 방법 (링크)](#실행-방법-링크)
@@ -110,12 +114,29 @@ erDiagram
       int promotion_id PK, FK
    }
 
-   promotions || --o{ promotion_users : ""
+   books || --|{ promotion_categories : ""
    users || --o{ promotion_users : ""
    promotions || --o{ promotion_categories : ""
-   books || --|{ promotion_categories : ""
+   promotions || --o{ promotion_users : ""
 ```
 
+<<<<<<< Updated upstream
+=======
+### 회원 도메인 ERD
+
+```mermaid
+erDiagram
+   users {
+      int id PK
+      varchar(100) email
+      char(24) hashed_password
+      char(24) salt
+      tinyint(1) is_deleted
+      timestamp created_at
+   }
+```
+
+>>>>>>> Stashed changes
 ## 시스템 설계도
 
 ![](./assets//image.drawio.png)

@@ -36,7 +36,9 @@ module.exports = class OrdersRepository {
     const query = `
       SELECT
         order_id AS orderID,
-        delivery,
+        delivery->>"$.address" AS address,
+        delivery->>"$.receiver" AS receiver,
+        delivery->>"$.contact" AS contact,
         main_book_title AS mainBookTitle,
         total_price AS totalPrice,
         total_count AS totalCount,

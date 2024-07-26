@@ -17,6 +17,22 @@ class BooksController {
   }
 
   initRoutes() {
+    this.router.post(
+      this.path + "/:bookID/cart",
+      verifyAccessToken,
+      validateCartBook,
+      validateError,
+      this.postCartBook
+    );
+    this.router.delete(
+      this.path + "/:bookID/cart",
+      verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.deleteCartBook
+    );
+    this.router.get(this.path + "/carts", verifyAccessToken, this.getCartBooks);
+
     this.router.get(
       `${this.path}/authorized`,
       verifyAccessToken,
@@ -39,6 +55,24 @@ class BooksController {
       validateError,
       this.getBook
     );
+<<<<<<< Updated upstream
+=======
+
+    this.router.post(
+      this.path + "/:bookID/like",
+      verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.postLike
+    );
+    this.router.delete(
+      this.path + "/:bookID/like",
+      verifyAccessToken,
+      validateBookID,
+      validateError,
+      this.deleteLike
+    );
+>>>>>>> Stashed changes
   }
 
   getBooks = async (req, res, next) => {

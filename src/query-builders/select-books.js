@@ -11,7 +11,7 @@ module.exports = class SelectBooksQueryBuilder extends Base {
     return this;
   }
 
-  setIsNew(isNew) {
+  setIsNewPublished(isNew) {
     const condition =
       "b.published_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()";
 

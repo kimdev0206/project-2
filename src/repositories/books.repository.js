@@ -48,7 +48,7 @@ module.exports = class BooksRepository {
     builder
       .setBaseQuery(baseQuery)()
       .setCategoryID(dao.categoryID)
-      .setIsNew(dao.isNew)
+      .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
       .setIsBest(dao.isBest)
       .setPaging(dao)
@@ -106,7 +106,7 @@ module.exports = class BooksRepository {
     builder
       .setBaseQuery(baseQuery)([dao.userID, dao.userID])
       .setCategoryID(dao.categoryID)
-      .setIsNew(dao.isNew)
+      .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
       .setIsBest(dao.isBest)
       .setPaging(dao)
@@ -129,7 +129,7 @@ module.exports = class BooksRepository {
     builder
       .setBaseQuery(baseQuery)()
       .setCategoryID(dao.categoryID)
-      .setIsNew(dao.isNew)
+      .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
       .setIsBest(dao.isBest)
       .build();

@@ -43,7 +43,7 @@ module.exports = class SelectBooksSubQuery {
     builder
       .setBaseQuery(baseQuery)()
       .setCategoryID(params.categoryID)
-      .setIsNew(params.isNew)
+      .setIsNewPublished(params.isNew)
       .setKeyword(params)
       .setIsBest(params.isBest)
       .setPaging(params)
