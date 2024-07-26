@@ -14,8 +14,9 @@ module.exports = class SelectBookCount {
     builder
       .setBaseQuery(baseQuery)()
       .setCategoryID(params.categoryID)
-      .setIsNew(params.isNew)
+      .setIsNewPublished(params.isNew)
       .setKeyword(params)
+      .setIsNewCreated(params.isNewCreated)
       .setIsBest(params.isBest)
       .build();
 

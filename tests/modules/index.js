@@ -1,3 +1,4 @@
+const DeletePromotionCategories = require("./delete-promotion-categories");
 const DeleteUser = require("./delete-user");
 const Delete = require("./delete");
 const InsertBooks = require("./insert-books");
@@ -16,6 +17,7 @@ const SelectRandomBooks = require("./select-random-books");
 const SelectUserIDs = require("./select-user-ids");
 
 module.exports = {
+  DeletePromotionCategories,
   DeleteUser,
   Delete,
   InsertBooks,
