@@ -1,6 +1,6 @@
+const { BookCategoryID } = require("../enums");
 const BooksRepository = require("../repositories/books.repository");
 const HttpError = require("../HttpError");
-const { BookCategoryID } = require("../enums");
 
 module.exports = class BooksService {
   repository = new BooksRepository();
@@ -45,8 +45,6 @@ module.exports = class BooksService {
       data: row,
     };
   }
-<<<<<<< Updated upstream
-=======
 
   postLike = async (dto) => {
     try {
@@ -104,5 +102,4 @@ module.exports = class BooksService {
 
     return rows;
   }
->>>>>>> Stashed changes
 };

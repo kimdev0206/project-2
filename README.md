@@ -3,13 +3,10 @@
 - [온라인 서점 API](#온라인-서점-api)
   - [기능 극복 사례 (링크)](#기능-극복-사례-링크)
   - [도메인 설계](#도메인-설계)
-    - [회원 도메인 ERD](#회원-도메인-erd)
+    - [도서 도메인 ERD](#도서-도메인-erd)
     - [주문 도메인 ERD](#주문-도메인-erd)
     - [프로모션 도메인 ERD](#프로모션-도메인-erd)
-<<<<<<< Updated upstream
-=======
     - [회원 도메인 ERD](#회원-도메인-erd)
->>>>>>> Stashed changes
   - [시스템 설계도](#시스템-설계도)
   - [API 명세 (링크)](#api-명세-링크)
   - [실행 방법 (링크)](#실행-방법-링크)
@@ -22,36 +19,19 @@
 
 ## 도메인 설계
 
-다음은 ERD 에 설명이 필요한 항목입니다.
+- 테이블을 리소스 식별에 적합한 도메인으로 분류하였습니다. 공개된 테이블은 해당 도메인에 분류된 항목을 의미합니다.
 
 - 복합키는 중복도가 낮을 순서로 설정하였습니다.
 
-### 회원 도메인 ERD
+### 도서 도메인 ERD
 
 ```mermaid
 erDiagram
- users {
-      int id PK
-      varchar(100) email
-      char(24) hashed_password
-      char(24) salt
-      tinyint(1) is_deleted
-      timestamp created_at
-   }
-
    likes {
       int user_id PK, FK
       int book_id PK, FK
    }
 
-   users ||--o{ likes : ""
-   books ||--o{ likes : ""
-```
-
-### 주문 도메인 ERD
-
-```mermaid
-erDiagram
    cart_books {
       int user_id PK, FK
       int book_id PK, FK
@@ -75,6 +55,16 @@ erDiagram
       timestamp created_at
    }
 
+   users ||--o{ likes : ""
+   books ||--o{ likes : ""
+   books ||--o{ cart_books : ""
+   users ||--o{ cart_books : ""
+```
+
+### 주문 도메인 ERD
+
+```mermaid
+erDiagram
    orders {
       char(36) order_id PK
       int user_id FK
@@ -120,8 +110,6 @@ erDiagram
    promotions || --o{ promotion_users : ""
 ```
 
-<<<<<<< Updated upstream
-=======
 ### 회원 도메인 ERD
 
 ```mermaid
@@ -136,7 +124,6 @@ erDiagram
    }
 ```
 
->>>>>>> Stashed changes
 ## 시스템 설계도
 
 ![](./assets//image.drawio.png)
@@ -144,6 +131,8 @@ erDiagram
 <br/>
 
 ## [API 명세 (링크)](https://documenter.getpostman.com/view/31843867/2s9Ykt5zMy)
+
+도메인에 따라 API 를 분류하였습니다.
 
 링크를 확인해주세요. postman docs 로 이동합니다.
 

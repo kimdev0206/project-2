@@ -1,6 +1,7 @@
 const {
   SelectBookCountQueryBuilder,
   SelectBooksQueryBuilder,
+  SelectCartBooksBuilder,
 } = require("../query-builders");
 const database = require("../database");
 
@@ -235,6 +236,99 @@ module.exports = class BooksRepository {
 
     const values = [dao.userID, dao.userID, dao.bookID];
     const [result] = await pool.query(query, values);
+    return result;
+  }
+
+  async insertLike(dao) {
+    const { pool } = this.database;
+    const query = `
+      INSERT INTO 
+        likes (
+          user_id,
+          book_id
+        )
+      VALUES
+        (?, ?);
+    `;
+
+    const values = [dao.userID, dao.bookID];
+    await pool.query(query, values);
+  }
+
+  async deleteLike(dao) {
+    const { pool } = this.database;
+    const query = `
+      DELETE
+      FROM
+        likes
+      WHERE
+        user_id = ?
+        AND book_id = ?;
+    `;
+
+    const values = [dao.userID, dao.bookID];
+    const [result] = await pool.query(query, values);
+    return result;
+  }
+
+  async insertCartBook(dao) {
+    const { pool } = this.database;
+    const query = `
+      INSERT INTO
+        cart_books (
+          user_id,
+          book_id,
+          count
+        )
+      VALUES
+        (?, ?, ?);
+    `;
+
+    const values = [dao.userID, dao.bookID, dao.count];
+    await pool.query(query, values);
+  }
+
+  async deleteCartBook(dao) {
+    const { pool } = this.database;
+    const query = `
+      DELETE
+      FROM
+        cart_books       
+      WHERE
+        user_id = ?
+        AND book_id = ?;
+    `;
+
+    const values = [dao.userID, dao.bookID];
+    const [result] = await pool.query(query, values);
+    return result;
+  }
+
+  async selectCartBooks(dao) {
+    const builder = new SelectCartBooksBuilder();
+    const baseQuery = `
+      SELECT
+        cb.book_id AS bookID,
+        b.title,
+        b.summary,
+        cb.count,
+        b.price,
+        b.author
+      FROM
+        books AS b
+      LEFT JOIN
+        cart_books AS cb
+        ON b.id = cb.book_id
+    `;
+
+    builder
+      .setBaseQuery(baseQuery)()
+      .setUserID(dao.userID)
+      .setBookIDs(dao.bookIDs)
+      .build();
+
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
 };
