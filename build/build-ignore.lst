@@ -1,7 +1,8 @@
 ../.git/*
+../assets/*
 ../bin/www
 ../build/*
-../scripts/*
+../tests/*
 ../.env
 ../.gitignore
 ../README.md

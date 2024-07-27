@@ -7,7 +7,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "set DEBUG=log:* & node --watch --env-file=.env ./bin/www",
+    "dev": "node --watch --env-file=.env ./bin/www",
     "test": "jest --setupFiles dotenv/config --detectOpenHandles"
   },
   "dependencies": {

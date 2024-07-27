@@ -21,7 +21,7 @@ module.exports = class InsertLikes {
 
     const values = this.makeValues(params);
     const size = params.bookIDs.length * params.userIDs.length;
-    const chunkSize = size / 10;
+    const chunkSize = size % 100 ? size / 10 : size / 100;
     let promises = [];
 
     for (let i = 0; i < size; i += chunkSize) {

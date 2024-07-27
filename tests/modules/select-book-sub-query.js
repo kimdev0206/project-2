@@ -17,6 +17,27 @@ module.exports = class SelectBookSubQuery {
         b.pages,
         b.contents,
         b.price,
+        b.amount,
+        (
+          SELECT
+            COUNT(*)
+          FROM
+            likes
+          WHERE
+            book_id = b.id
+        ) AS likes,
+        (
+          SELECT EXISTS (
+            SELECT
+              *
+            FROM
+              likes
+            WHERE
+              user_id = ?
+              AND book_id = b.id
+          )
+        ) AS liked,
+        b.published_at AS publishedAt,
         CONVERT(ROUND(b.price - b.price * (
           SELECT
             MAX(ap.discount_rate)
@@ -38,28 +59,7 @@ module.exports = class SelectBookSubQuery {
               ap.user_id = ?
               OR b.category_id = ap.category_id
             )
-        ) AS discountRate,
-        b.amount,
-        (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
-        (
-          SELECT EXISTS (
-            SELECT
-              *
-            FROM
-              likes
-            WHERE
-              user_id = ?
-              AND book_id = b.id
-          )
-        ) AS liked,
-        b.published_at AS publishedAt
+        ) AS discountRate        
       FROM
         books AS b        
       WHERE

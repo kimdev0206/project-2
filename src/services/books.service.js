@@ -23,7 +23,7 @@ module.exports = class BooksService {
     const [row] = await this.repository.selectBookCount(dto);
 
     return {
-      meta: { counted: row.counted },
+      meta: { page: dto.page, counted: row.counted },
       data: rows,
     };
   }

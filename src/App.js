@@ -13,7 +13,9 @@ module.exports = class App {
   }
 
   listen() {
-    this.app.listen(3000, () => console.info("Listening on port 3000"));
+    this.app.listen(3000, () =>
+      console.info(`Listening on port 3000 (${process.env.NODE_ENV})`)
+    );
   }
 
   initPreMiddlewares() {
