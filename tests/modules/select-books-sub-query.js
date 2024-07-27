@@ -12,22 +12,6 @@ module.exports = class SelectBooksSubQuery {
         b.summary,
         b.author,
         b.price,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            b.category_id = ap.category_id
-        )), SIGNED) AS discountedPrice,
-        (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            b.category_id = ap.category_id
-        ) AS discountRate,
         (
           SELECT
             COUNT(*)
@@ -35,13 +19,31 @@ module.exports = class SelectBooksSubQuery {
             likes
           WHERE
             book_id = b.id
-        ) AS likes
+        ) AS likes,
+        CONVERT(ROUND(b.price - b.price * (
+          SELECT
+            MAX(ap.discount_rate)
+          FROM
+            active_promotions AS ap
+          WHERE
+            ap.user_id = ?
+            OR b.category_id = ap.category_id
+        )), SIGNED) AS discountedPrice,
+        (
+          SELECT
+            MAX(ap.discount_rate)
+          FROM
+            active_promotions AS ap
+          WHERE
+            ap.user_id = ?
+            OR b.category_id = ap.category_id
+        ) AS discountRate        
       FROM
         books AS b
     `;
 
     builder
-      .setBaseQuery(baseQuery)()
+      .setBaseQuery(baseQuery)([params.userID, params.userID])
       .setCategoryID(params.categoryID)
       .setIsNewPublished(params.isNew)
       .setKeyword(params)

@@ -8,7 +8,7 @@ const database = require("../database");
 module.exports = class BooksRepository {
   database = database;
 
-  async selectBooks(dao) {
+  async selectBooksSubQuery(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
       SELECT
@@ -18,12 +18,21 @@ module.exports = class BooksRepository {
         b.summary,
         b.author,
         b.price,
+        (
+          SELECT
+            COUNT(*)
+          FROM
+            likes
+          WHERE
+            book_id = b.id
+        ) AS likes,
         CONVERT(ROUND(b.price - b.price * (
           SELECT
             MAX(ap.discount_rate)
           FROM
             active_promotions AS ap
           WHERE
+            ${dao.userID ? "ap.user_id = ? OR" : ""}
             b.category_id = ap.category_id
         )), SIGNED) AS discountedPrice,
         (
@@ -32,22 +41,15 @@ module.exports = class BooksRepository {
           FROM
             active_promotions AS ap
           WHERE
+            ${dao.userID ? "ap.user_id = ? OR" : ""}
             b.category_id = ap.category_id
-        ) AS discountRate,
-        (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes
+        ) AS discountRate
       FROM
         books AS b
     `;
 
     builder
-      .setBaseQuery(baseQuery)()
+      .setBaseQuery(baseQuery)(dao.userID && [dao.userID, dao.userID])
       .setCategoryID(dao.categoryID)
       .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
@@ -60,7 +62,7 @@ module.exports = class BooksRepository {
     return result;
   }
 
-  async selectAuthorizedBooks(dao) {
+  async selectBooksJoin(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
       SELECT
@@ -70,28 +72,6 @@ module.exports = class BooksRepository {
         b.summary,
         b.author,
         b.price,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            (
-              ap.user_id = ?
-              OR b.category_id = ap.category_id
-            )
-        )), SIGNED) AS discountedPrice,
-        (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            (
-              ap.user_id = ?
-              OR b.category_id = ap.category_id
-            )
-        ) AS discountRate,
         (
           SELECT
             COUNT(*)
@@ -99,16 +79,25 @@ module.exports = class BooksRepository {
             likes
           WHERE
             book_id = b.id
-        ) AS likes
+        ) AS likes,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
+      LEFT JOIN
+        active_promotions AS ap
+        ${dao.userID ? "ON ap.user_id = ? OR" : ""}
+        b.category_id = ap.category_id
     `;
 
     builder
-      .setBaseQuery(baseQuery)([dao.userID, dao.userID])
+      .setBaseQuery(baseQuery)(dao.userID && [dao.userID])
       .setCategoryID(dao.categoryID)
       .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
+      .setGrouping()
       .setIsBest(dao.isBest)
       .setPaging(dao)
       .build();
@@ -156,11 +145,8 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
-        CONVERT(ROUND(b.price - b.price *
-          MAX(ap.discount_rate)
-        ), SIGNED) AS discountedPrice,
-        MAX(ap.discount_rate) AS discountRate,
         b.amount,
+        b.published_at AS publishedAt,
         (
           SELECT
             COUNT(*)
@@ -169,7 +155,10 @@ module.exports = class BooksRepository {
           WHERE
             book_id = b.id
         ) AS likes,
-        b.published_at AS publishedAt
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
       LEFT JOIN
@@ -200,11 +189,8 @@ module.exports = class BooksRepository {
         b.pages,
         b.contents,
         b.price,
-        CONVERT(ROUND(b.price - b.price *
-          MAX(ap.discount_rate)
-        ), SIGNED) AS discountedPrice,
-        MAX(ap.discount_rate) AS discountRate,
         b.amount,
+        b.published_at AS publishedAt,
         (
           SELECT
             COUNT(*)
@@ -224,12 +210,16 @@ module.exports = class BooksRepository {
               AND book_id = b.id
           )
         ) AS liked,
-        b.published_at AS publishedAt
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
       LEFT JOIN
         active_promotions AS ap
-        ON (ap.user_id = ? OR b.category_id = ap.category_id)
+        ON ap.user_id = ? 
+        OR b.category_id = ap.category_id
       WHERE
         b.id = ?;
     `;
