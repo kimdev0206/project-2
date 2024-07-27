@@ -4,7 +4,7 @@ CREATE TABLE `users` (
   `hashed_password` char(24) NOT NULL,
   `salt` char(24) NOT NULL,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT (now())
+  `created_at` timestamp NOT NULL DEFAULT (NOW())
 );
 
 CREATE TABLE `likes` (
@@ -25,7 +25,7 @@ CREATE TABLE `books` (
   `title` varchar(45) NOT NULL,
   `category_id` int NOT NULL,
   `form` varchar(45) NOT NULL,
-  `isbn` varchar(13) NOT NULL,
+  `isbn` char(17) NOT NULL,
   `summary` varchar(1024),
   `detail` varchar(2048),
   `author` varchar(45) NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE `books` (
   `price` int NOT NULL,
   `amount` int NOT NULL,
   `published_at` date NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT (now())
+  `created_at` timestamp NOT NULL DEFAULT (NOW())
 );
 
 CREATE TABLE `orders` (
@@ -53,7 +53,7 @@ author varchar
   `main_book_title` varchar(45) NOT NULL,
   `total_price` int NOT NULL,
   `total_count` int NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT (now())
+  `created_at` timestamp NOT NULL DEFAULT (NOW())
 );
 
 CREATE TABLE `promotions` (

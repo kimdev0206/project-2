@@ -17,11 +17,8 @@ module.exports = class SelectBookJoin {
         b.pages,
         b.contents,
         b.price,
-        CONVERT(ROUND(b.price - b.price *
-          MAX(ap.discount_rate)
-        ), SIGNED) AS discountedPrice,
-        MAX(ap.discount_rate) AS discountRate,
         b.amount,
+        b.published_at AS publishedAt,
         (
           SELECT
             COUNT(*)
@@ -30,7 +27,10 @@ module.exports = class SelectBookJoin {
           WHERE
             book_id = b.id
         ) AS likes,
-        b.published_at AS publishedAt
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b        
       LEFT JOIN

@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const controllers = require("./controllers");
 const { error, httpError, log, pathError } = require("./middlewares");
+const { isProduction } = require("./utils");
 
 module.exports = class App {
   app = express();
@@ -24,7 +25,7 @@ module.exports = class App {
       maxAge: process.env.ACCESS_CONTROL_MAX_AGE,
     };
 
-    this.app.use(cors(corsOptions));
+    !isProduction() && this.app.use(cors(corsOptions));
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(express.json());
     this.app.use(log);

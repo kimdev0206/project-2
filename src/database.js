@@ -19,9 +19,9 @@ class Database {
           password: process.env.MYSQL_PASSWORD,
         },
       });
-  }
 
-  pool = mysql.createPool(this.config);
+    this.pool = mysql.createPool(this.config);
+  }
 
   connect() {
     this.pool

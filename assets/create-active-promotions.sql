@@ -13,4 +13,5 @@ LEFT JOIN
   promotion_categories AS pc 
   ON p.id = pc.promotion_id
 WHERE
-  (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at);
+  p.start_at IS NULL 
+  OR NOW() BETWEEN p.start_at AND p.end_at;
