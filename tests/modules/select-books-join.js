@@ -12,10 +12,6 @@ module.exports = class SelectBooksJoin {
         b.summary,
         b.author,
         b.price,
-        CONVERT(ROUND(b.price - b.price *
-          MAX(ap.discount_rate)
-        ), SIGNED) AS discountedPrice,
-        MAX(ap.discount_rate) AS discountRate,
         (
           SELECT
             COUNT(*)
@@ -23,16 +19,21 @@ module.exports = class SelectBooksJoin {
             likes
           WHERE
             book_id = b.id
-        ) AS likes
+        ) AS likes,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
       LEFT JOIN
         active_promotions AS ap
-        ON b.category_id = ap.category_id
+        ON ap.user_id = ? 
+        OR b.category_id = ap.category_id
     `;
 
     builder
-      .setBaseQuery(baseQuery)()
+      .setBaseQuery(baseQuery)([params.userID])
       .setCategoryID(params.categoryID)
       .setIsNewPublished(params.isNew)
       .setKeyword(params)

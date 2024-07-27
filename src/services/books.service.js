@@ -9,10 +9,10 @@ module.exports = class BooksService {
     const offset = (dto.page - 1) * dto.limit;
     const dao = { ...dto, offset };
 
-    if (!dto.userID) {
-      var rows = await this.repository.selectBooks(dao);
+    if (dto.categoryID || dto.isNew || dto.isBest || dto.keyword) {
+      var rows = await this.repository.selectBooksJoin(dao);
     } else {
-      var rows = await this.repository.selectAuthorizedBooks(dao);
+      var rows = await this.repository.selectBooksSubQuery(dao);
     }
 
     if (!rows.length) {
@@ -29,10 +29,10 @@ module.exports = class BooksService {
   }
 
   async getBook(dto) {
-    if (!dto.userID) {
-      var [row] = await this.repository.selectBook(dto);
-    } else {
+    if (dto.userID) {
       var [row] = await this.repository.selectAuthorizedBook(dto);
+    } else {
+      var [row] = await this.repository.selectBook(dto);
     }
 
     if (!row) {
