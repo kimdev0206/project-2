@@ -8,12 +8,7 @@ module.exports = class BooksService {
   async getBooks(dto) {
     const offset = (dto.page - 1) * dto.limit;
     const dao = { ...dto, offset };
-
-    if (dto.categoryID || dto.isNew || dto.isBest || dto.keyword) {
-      var rows = await this.repository.selectBooksJoin(dao);
-    } else {
-      var rows = await this.repository.selectBooksSubQuery(dao);
-    }
+    const rows = await this.repository.selectBooks(dao);
 
     if (!rows.length) {
       const message = "도서 목록이 존재하지 않습니다.";

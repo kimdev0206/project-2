@@ -1,6 +1,6 @@
 CREATE VIEW active_promotions AS
 SELECT
-  p.id,
+  DISTINCT p.id,
   p.discount_rate,
   pu.user_id,
   pc.category_id

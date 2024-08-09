@@ -8,61 +8,7 @@ const database = require("../database");
 module.exports = class BooksRepository {
   database = database;
 
-  async selectBooksSubQuery(dao) {
-    const builder = new SelectBooksQueryBuilder();
-    const baseQuery = `
-      SELECT
-        b.id,
-        b.title,
-        b.id AS imgID,
-        b.summary,
-        b.author,
-        b.price,
-        (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            ${dao.userID ? "ap.user_id = ? OR" : ""}
-            b.category_id = ap.category_id
-        )), SIGNED) AS discountedPrice,
-        (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            ${dao.userID ? "ap.user_id = ? OR" : ""}
-            b.category_id = ap.category_id
-        ) AS discountRate
-      FROM
-        books AS b
-    `;
-
-    builder
-      .setBaseQuery(baseQuery)(dao.userID && [dao.userID, dao.userID])
-      .setCategoryID(dao.categoryID)
-      .setIsNewPublished(dao.isNew)
-      .setKeyword(dao)
-      .setIsBest(dao.isBest)
-      .setPaging(dao)
-      .build();
-
-    const { pool } = this.database;
-    const [result] = await pool.query(builder.query, builder.values);
-    return result;
-  }
-
-  async selectBooksJoin(dao) {
+  async selectBooks(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
       SELECT
@@ -86,10 +32,28 @@ module.exports = class BooksRepository {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN
-        active_promotions AS ap
-        ${dao.userID ? "ON ap.user_id = ? OR" : ""}
-        b.category_id = ap.category_id
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pu.user_id,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_users AS pu
+          ON p.id = pu.promotion_id
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          (
+            ${dao.userID ? "pu.user_id = ?" : ""}
+            AND p.start_at IS NULL
+          )
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap                
+        ON b.category_id = ap.category_id
     `;
 
     builder
@@ -161,8 +125,24 @@ module.exports = class BooksRepository {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN
-        active_promotions AS ap
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pu.user_id,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_users AS pu
+          ON p.id = pu.promotion_id
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          (pu.user_id = ? AND p.start_at IS NULL)
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap
         ON b.category_id = ap.category_id
       WHERE
         b.id = ?;
@@ -216,10 +196,25 @@ module.exports = class BooksRepository {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN
-        active_promotions AS ap
-        ON ap.user_id = ? 
-        OR b.category_id = ap.category_id
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pu.user_id,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_users AS pu
+          ON p.id = pu.promotion_id
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          (pu.user_id = ? AND p.start_at IS NULL)
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap
+        ON b.category_id = ap.category_id
       WHERE
         b.id = ?;
     `;
