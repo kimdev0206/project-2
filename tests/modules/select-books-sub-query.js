@@ -12,38 +12,59 @@ module.exports = class SelectBooksSubQuery {
         b.summary,
         b.author,
         b.price,
+        likes,
+        (SELECT 
+          CONVERT(ROUND(b.price - b.price * sub.discountRate), SIGNED)
+        FROM 
+          (
+            SELECT 
+              MAX(p.discount_rate) AS discountRate
+            FROM 
+              promotions AS p
+            LEFT JOIN 
+              promotion_users AS pu 
+              ON p.id = pu.promotion_id 
+              AND pu.user_id = ?
+            LEFT JOIN 
+              promotion_categories AS pc 
+              ON p.id = pc.promotion_id
+            WHERE 
+              (b.category_id = pc.category_id OR pu.user_id = ?)
+              AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+          ) AS sub
+        ) AS discountedPrice,  
         (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            ap.user_id = ?
-            OR b.category_id = ap.category_id
-        )), SIGNED) AS discountedPrice,
-        (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            ap.user_id = ?
-            OR b.category_id = ap.category_id
-        ) AS discountRate        
+          SELECT 
+            sub.discountRate
+          FROM 
+            (
+              SELECT 
+                MAX(p.discount_rate) AS discountRate
+              FROM 
+                promotions AS p
+              LEFT JOIN 
+                promotion_users AS pu 
+                ON p.id = pu.promotion_id 
+                AND pu.user_id = ?
+              LEFT JOIN 
+                promotion_categories AS pc 
+                ON p.id = pc.promotion_id
+              WHERE 
+                (b.category_id = pc.category_id OR pu.user_id = ?)
+                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+            ) AS sub
+        )AS discountRate
       FROM
         books AS b
     `;
 
     builder
-      .setBaseQuery(baseQuery)([params.userID, params.userID])
+      .setBaseQuery(baseQuery)([
+        params.userID,
+        params.userID,
+        params.userID,
+        params.userID,
+      ])
       .setCategoryID(params.categoryID)
       .setIsNewPublished(params.isNew)
       .setKeyword(params)

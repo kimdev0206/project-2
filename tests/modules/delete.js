@@ -13,7 +13,7 @@ module.exports = class Delete {
 
     const values = params.ids;
     const size = params.ids.length;
-    const chunkSize = size % 100 ? size / 10 : size / 100;
+    const chunkSize = size % 1000 ? size / 10 : size / 1000;
     let promises = [];
 
     for (let i = 0; i < size; i += chunkSize) {

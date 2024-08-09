@@ -9,18 +9,31 @@ module.exports = class BooksService {
     const offset = (dto.page - 1) * dto.limit;
     const dao = { ...dto, offset };
 
-    if (dto.categoryID || dto.isNew || dto.isBest || dto.keyword) {
-      var rows = await this.repository.selectBooksJoin(dao);
+    const isJoin = dto.categoryID || dto.isNew || dto.keyword || dto.isBest;
+    const [row] = await this.repository.selectBookCount(dto);
+
+    if (dto.userID) {
+      if (isJoin) {
+        var rows = await this.repository.selectAuthorizedBooksJoin(dao);
+      } else if (row.counted === dto.limit) {
+        var rows = await this.repository.selectAuthorizedBooksJoin(dao);
+      } else {
+        var rows = await this.repository.selectAuthorizedBooksSubQuery(dao);
+      }
     } else {
-      var rows = await this.repository.selectBooksSubQuery(dao);
+      if (isJoin) {
+        var rows = await this.repository.selectBooksJoin(dao);
+      } else if (row.counted === dto.limit) {
+        var rows = await this.repository.selectAuthorizedBooksJoin(dao);
+      } else {
+        var rows = await this.repository.selectBooksSubQuery(dao);
+      }
     }
 
     if (!rows.length) {
       const message = "도서 목록이 존재하지 않습니다.";
       throw new HttpError(404, message);
     }
-
-    const [row] = await this.repository.selectBookCount(dto);
 
     return {
       meta: { page: dto.page, counted: row.counted },

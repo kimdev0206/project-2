@@ -4,8 +4,11 @@ const database = require("../../src/database");
 const { getRandomKey } = require("../utils");
 
 module.exports = class InsertBooks {
-  static makeValues(size) {
-    const isbnList = faker.helpers.uniqueArray(faker.commerce.isbn, size);
+  static makeValues(params) {
+    const isbnList = faker.helpers.uniqueArray(
+      faker.commerce.isbn,
+      params.bookSize
+    );
 
     return isbnList.map((isbn) => [
       faker.lorem.words(),
@@ -19,6 +22,7 @@ module.exports = class InsertBooks {
       faker.lorem.lines(),
       faker.commerce.price({ dec: 0, min: 1_000, max: 10_000 }),
       faker.helpers.rangeToNumber({ min: 10, max: 100 }),
+      params.userSize,
       faker.date.past(),
     ]);
   }
@@ -39,13 +43,14 @@ module.exports = class InsertBooks {
           contents,
           price,
           amount,
+          likes,
           published_at
         )
       VALUES
         ?;
     `;
 
-    const values = [this.makeValues(params.bookSize)];
+    const values = [this.makeValues(params)];
     const [result] = await pool.query(query, values);
     return result;
   }

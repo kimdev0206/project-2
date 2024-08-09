@@ -8,6 +8,55 @@ const database = require("../database");
 module.exports = class BooksRepository {
   database = database;
 
+  async selectBooksJoin(dao) {
+    const builder = new SelectBooksQueryBuilder();
+    const baseQuery = `
+      SELECT
+        b.id,
+        b.title,
+        b.id AS imgID,
+        b.summary,
+        b.author,
+        b.price,
+        likes,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
+      FROM
+        books AS b
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          p.start_at IS NULL
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap
+        ON b.category_id = ap.category_id        
+    `;
+
+    builder
+      .setBaseQuery(baseQuery)()
+      .setCategoryID(dao.categoryID)
+      .setIsNewPublished(dao.isNew)
+      .setKeyword(dao)
+      .setGrouping()
+      .setIsBest(dao.isBest)
+      .setPaging(dao)
+      .build();
+
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
+    return result;
+  }
+
   async selectBooksSubQuery(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
@@ -18,38 +67,52 @@ module.exports = class BooksRepository {
         b.summary,
         b.author,
         b.price,
+        likes,
+        (SELECT 
+          CONVERT(ROUND(b.price - b.price * sub.discountRate), SIGNED)
+        FROM 
+          (
+            SELECT 
+              MAX(p.discount_rate) AS discountRate
+            FROM 
+              promotions AS p
+            LEFT JOIN 
+              promotion_users AS pu 
+              ON p.id = pu.promotion_id               
+            LEFT JOIN 
+              promotion_categories AS pc 
+              ON p.id = pc.promotion_id
+            WHERE 
+              b.category_id = pc.category_id
+              AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+          ) AS sub
+        ) AS discountedPrice,  
         (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
-        CONVERT(ROUND(b.price - b.price * (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            ${dao.userID ? "ap.user_id = ? OR" : ""}
-            b.category_id = ap.category_id
-        )), SIGNED) AS discountedPrice,
-        (
-          SELECT
-            MAX(ap.discount_rate)
-          FROM
-            active_promotions AS ap
-          WHERE
-            ${dao.userID ? "ap.user_id = ? OR" : ""}
-            b.category_id = ap.category_id
-        ) AS discountRate
+          SELECT 
+            sub.discountRate
+          FROM 
+            (
+              SELECT 
+                MAX(p.discount_rate) AS discountRate
+              FROM 
+                promotions AS p
+              LEFT JOIN 
+                promotion_users AS pu 
+                ON p.id = pu.promotion_id                
+              LEFT JOIN 
+                promotion_categories AS pc 
+                ON p.id = pc.promotion_id
+              WHERE 
+                b.category_id = pc.category_id
+                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+            ) AS sub
+        )AS discountRate
       FROM
-        books AS b
+        books AS b      
     `;
 
     builder
-      .setBaseQuery(baseQuery)(dao.userID && [dao.userID, dao.userID])
+      .setBaseQuery(baseQuery)()
       .setCategoryID(dao.categoryID)
       .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
@@ -62,7 +125,7 @@ module.exports = class BooksRepository {
     return result;
   }
 
-  async selectBooksJoin(dao) {
+  async selectAuthorizedBooksJoin(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
       SELECT
@@ -72,32 +135,112 @@ module.exports = class BooksRepository {
         b.summary,
         b.author,
         b.price,
-        (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
+        likes,
         CONVERT(ROUND(b.price - b.price *
           MAX(ap.discount_rate)
         ), SIGNED) AS discountedPrice,
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN
-        active_promotions AS ap
-        ${dao.userID ? "ON ap.user_id = ? OR" : ""}
-        b.category_id = ap.category_id
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pu.user_id,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_users AS pu
+          ON p.id = pu.promotion_id
+          AND pu.user_id = ?
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          p.start_at IS NULL
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap
+        ON b.category_id = ap.category_id
+        OR ap.user_id = ?
     `;
 
     builder
-      .setBaseQuery(baseQuery)(dao.userID && [dao.userID])
+      .setBaseQuery(baseQuery)([dao.userID, dao.userID])
       .setCategoryID(dao.categoryID)
       .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
       .setGrouping()
+      .setIsBest(dao.isBest)
+      .setPaging(dao)
+      .build();
+
+    const { pool } = this.database;
+    const [result] = await pool.query(builder.query, builder.values);
+    return result;
+  }
+
+  async selectAuthorizedBooksSubQuery(dao) {
+    const builder = new SelectBooksQueryBuilder();
+    const baseQuery = `
+      SELECT
+        b.id,
+        b.title,
+        b.id AS imgID,
+        b.summary,
+        b.author,
+        b.price,
+        likes,
+        (SELECT 
+          CONVERT(ROUND(b.price - b.price * sub.discountRate), SIGNED)
+        FROM 
+          (
+            SELECT 
+              MAX(p.discount_rate) AS discountRate
+            FROM 
+              promotions AS p
+            LEFT JOIN 
+              promotion_users AS pu 
+              ON p.id = pu.promotion_id 
+              AND pu.user_id = ?
+            LEFT JOIN 
+              promotion_categories AS pc 
+              ON p.id = pc.promotion_id
+            WHERE 
+              (b.category_id = pc.category_id OR pu.user_id = ?)
+              AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+          ) AS sub
+        ) AS discountedPrice,  
+        (
+          SELECT 
+            sub.discountRate
+          FROM 
+            (
+              SELECT 
+                MAX(p.discount_rate) AS discountRate
+              FROM 
+                promotions AS p
+              LEFT JOIN 
+                promotion_users AS pu 
+                ON p.id = pu.promotion_id 
+                AND pu.user_id = ?
+              LEFT JOIN 
+                promotion_categories AS pc 
+                ON p.id = pc.promotion_id
+              WHERE 
+                (b.category_id = pc.category_id OR pu.user_id = ?)
+                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+            ) AS sub
+        )AS discountRate
+      FROM
+        books AS b      
+    `;
+
+    builder
+      .setBaseQuery(baseQuery)([dao.userID, dao.userID, dao.userID, dao.userID])
+      .setCategoryID(dao.categoryID)
+      .setIsNewPublished(dao.isNew)
+      .setKeyword(dao)
       .setIsBest(dao.isBest)
       .setPaging(dao)
       .build();
@@ -147,22 +290,27 @@ module.exports = class BooksRepository {
         b.price,
         b.amount,
         b.published_at AS publishedAt,
-        (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
+        likes,
         CONVERT(ROUND(b.price - b.price *
           MAX(ap.discount_rate)
         ), SIGNED) AS discountedPrice,
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN
-        active_promotions AS ap
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          p.start_at IS NULL
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap
         ON b.category_id = ap.category_id
       WHERE
         b.id = ?;
@@ -191,14 +339,7 @@ module.exports = class BooksRepository {
         b.price,
         b.amount,
         b.published_at AS publishedAt,
-        (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) AS likes,
+        likes,
         (
           SELECT EXISTS (
             SELECT
@@ -216,15 +357,31 @@ module.exports = class BooksRepository {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN
-        active_promotions AS ap
-        ON ap.user_id = ? 
-        OR b.category_id = ap.category_id
+      LEFT JOIN (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pu.user_id,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_users AS pu
+          ON p.id = pu.promotion_id
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          (pu.user_id = ? AND p.start_at IS NULL)
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      ) AS ap
+        ON b.category_id = ap.category_id
+        OR ap.user_id = ?
       WHERE
         b.id = ?;
     `;
 
-    const values = [dao.userID, dao.userID, dao.bookID];
+    const values = [dao.userID, dao.userID, dao.userID, dao.bookID];
     const [result] = await pool.query(query, values);
     return result;
   }
