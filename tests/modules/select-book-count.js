@@ -17,7 +17,6 @@ module.exports = class SelectBookCount {
       .setIsNewPublished(params.isNew)
       .setKeyword(params)
       .setIsNewCreated(params.isNewCreated)
-      .setIsBest(params.isBest)
       .build();
 
     const { pool } = database;

@@ -264,7 +264,6 @@ module.exports = class BooksRepository {
       .setCategoryID(dao.categoryID)
       .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
-      .setIsBest(dao.isBest)
       .build();
 
     const { pool } = this.database;
