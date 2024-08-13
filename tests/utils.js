@@ -2,11 +2,22 @@ const { fakerKO: faker } = require("@faker-js/faker");
 const { v1: uuidv1 } = require("uuid");
 
 module.exports = {
+  getChunkSize,
   getRandomKey,
   makeIDs,
   makeDeliveries,
   makeOrderIDs,
 };
+
+function getChunkSize(size) {
+  if (size % 10) return size;
+
+  if (size % 100) return size / 10;
+
+  if (size % 1000) return size / 100;
+
+  return size / 1000;
+}
 
 function getRandomKey(object) {
   const keys = Object.keys(object);

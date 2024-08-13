@@ -51,7 +51,7 @@ describe("[컨트롤러 계층의 통합 테스트] 접근 토큰 재발급", ()
 
   it("[사후 작업] 회원 레코드 삭제", async () => {
     const params = { table: "users", ids: [userID] };
-    const { affectedRows } = await Delete.run(params);
-    expect(affectedRows).toBe(1);
+    const totalAffectedRows = await Delete.run(params);
+    expect(totalAffectedRows).toBe(1);
   });
 });

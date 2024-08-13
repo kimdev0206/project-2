@@ -1,4 +1,5 @@
 const database = require("../../src/database");
+const { getChunkSize } = require("../utils");
 
 module.exports = class InsertLikes {
   static makeValues(params) {
@@ -21,7 +22,7 @@ module.exports = class InsertLikes {
 
     const values = this.makeValues(params);
     const size = params.bookIDs.length * params.userIDs.length;
-    const chunkSize = size % 1000 ? size / 10 : size / 1000;
+    const chunkSize = getChunkSize(size);
     let promises = [];
 
     for (let i = 0; i < size; i += chunkSize) {

@@ -1,4 +1,5 @@
 const database = require("../../src/database");
+const { getChunkSize } = require("../utils");
 
 module.exports = class Delete {
   static async run(params) {
@@ -13,7 +14,7 @@ module.exports = class Delete {
 
     const values = params.ids;
     const size = params.ids.length;
-    const chunkSize = size % 1000 ? size / 10 : size / 1000;
+    const chunkSize = getChunkSize(size);
     let promises = [];
 
     for (let i = 0; i < size; i += chunkSize) {

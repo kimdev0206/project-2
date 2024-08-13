@@ -66,8 +66,8 @@ describe("[컨트롤러 계층의 통합 테스트] 카테고리 프로모션 �
   describe("[사후 작업]", () => {
     it("[사후 작업] 등록된 도서 삭제", async () => {
       const params = { table: "books", ids: bookIDs };
-      const { affectedRows } = await Delete.run(params);
-      expect(affectedRows).toBe(bookSize);
+      const totalAffectedRows = await Delete.run(params);
+      expect(totalAffectedRows).toBe(bookSize);
     });
   });
 });

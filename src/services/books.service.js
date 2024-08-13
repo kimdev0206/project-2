@@ -81,7 +81,7 @@ module.exports = class BooksService {
     return 204;
   }
 
-  async postCartBook(dto) {
+  postCartBook = async (dto) => {
     try {
       await this.repository.insertCartBook(dto);
     } catch (error) {
@@ -90,7 +90,7 @@ module.exports = class BooksService {
     }
 
     return 201;
-  }
+  };
 
   async deleteCartBook(dto) {
     const { affectedRows } = await this.repository.deleteCartBook(dto);

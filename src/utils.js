@@ -1,5 +1,9 @@
 const jwt = require("jsonwebtoken");
 
+module.exports = {
+  isProduction,
+};
+
 function isProduction() {
   return process.env.NODE_ENV?.trim() === "production";
 }
@@ -9,8 +13,4 @@ Number.prototype.makeJWT = function (expiresIn) {
     expiresIn: expiresIn || process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
     issuer: "Yongki Kim",
   });
-};
-
-module.exports = {
-  isProduction,
 };

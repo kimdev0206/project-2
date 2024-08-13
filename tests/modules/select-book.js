@@ -48,9 +48,7 @@ module.exports = class SelectBook {
         ON b.category_id = ap.category_id
         OR ap.user_id = ?
       WHERE
-        b.id = ?
-      GROUP BY
-        b.id;
+        b.id = ?;
     `;
 
     const values = [params.userID, params.userID, params.bookID];

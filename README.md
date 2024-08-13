@@ -51,6 +51,7 @@ erDiagram
       text contents
       int price
       int amount
+      int likes
       date published_at
       timestamp created_at
    }
