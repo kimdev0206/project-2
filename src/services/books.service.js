@@ -1,9 +1,11 @@
 const { BookCategoryID } = require("../enums");
 const BooksRepository = require("../repositories/books.repository");
+const database = require("../database");
 const HttpError = require("../HttpError");
 
 module.exports = class BooksService {
   repository = new BooksRepository();
+  database = database;
 
   async getBooks(dto) {
     const offset = (dto.page - 1) * dto.limit;
@@ -60,26 +62,59 @@ module.exports = class BooksService {
   }
 
   postLike = async (dto) => {
-    try {
-      await this.repository.insertLike(dto);
-    } catch (error) {
-      const message = "이미 좋아요 처리되었습니다.";
-      throw new HttpError(409, message);
-    }
+    const { pool } = this.database;
+    const conn = await pool.getConnection();
 
-    return 201;
+    try {
+      await conn.beginTransaction();
+
+      await this.repository.insertLike(conn, dto);
+      await this.repository.increaseLikes(conn, dto);
+
+      await conn.commit();
+
+      return 201;
+    } catch (error) {
+      await conn.rollback();
+
+      if (error.code === "ER_DUP_ENTRY") {
+        const message = "이미 좋아요 처리되었습니다.";
+        throw new HttpError(409, message);
+      }
+
+      throw error;
+    } finally {
+      conn.release();
+    }
   };
 
-  async deleteLike(dto) {
-    const { affectedRows } = await this.repository.deleteLike(dto);
+  deleteLike = async (dto) => {
+    const { pool } = this.database;
+    const conn = await pool.getConnection();
 
-    if (!affectedRows) {
-      const message = "이미 좋아요 취소 처리되었습니다.";
-      throw new HttpError(404, message);
+    try {
+      await conn.beginTransaction();
+
+      const { affectedRows } = await this.repository.deleteLike(conn, dto);
+
+      if (!affectedRows) {
+        const message = "이미 좋아요 취소 처리되었습니다.";
+        throw new HttpError(404, message);
+      }
+
+      await this.repository.decreaseLikes(conn, dto);
+
+      await conn.commit();
+
+      return 204;
+    } catch (error) {
+      await conn.rollback();
+
+      throw error;
+    } finally {
+      conn.release();
     }
-
-    return 204;
-  }
+  };
 
   postCartBook = async (dto) => {
     try {

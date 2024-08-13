@@ -388,8 +388,7 @@ module.exports = class BooksRepository {
     return result;
   }
 
-  async insertLike(dao) {
-    const { pool } = this.database;
+  async insertLike(conn, dao) {
     const query = `
       INSERT INTO 
         likes (
@@ -401,11 +400,10 @@ module.exports = class BooksRepository {
     `;
 
     const values = [dao.userID, dao.bookID];
-    await pool.query(query, values);
+    await conn.query(query, values);
   }
 
-  async deleteLike(dao) {
-    const { pool } = this.database;
+  async deleteLike(conn, dao) {
     const query = `
       DELETE
       FROM
@@ -416,8 +414,37 @@ module.exports = class BooksRepository {
     `;
 
     const values = [dao.userID, dao.bookID];
-    const [result] = await pool.query(query, values);
+    const [result] = await conn.query(query, values);
     return result;
+  }
+
+  async increaseLikes(conn, dao) {
+    const query = `
+      UPDATE 
+        books
+      SET
+        likes = likes + 1
+      WHERE
+        id = ?;
+    `;
+
+    const values = [dao.bookID];
+    await conn.query(query, values);
+  }
+
+  async decreaseLikes(conn, dao) {
+    const query = `
+      UPDATE 
+        books
+      SET
+        likes = likes - 1
+      WHERE
+        likes > 0
+        AND id = ?;
+    `;
+
+    const values = [dao.bookID];
+    await conn.query(query, values);
   }
 
   async insertCartBook(dao) {

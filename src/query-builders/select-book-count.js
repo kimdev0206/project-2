@@ -13,24 +13,4 @@ module.exports = class SelectBookCountQueryBuilder extends (
 
     return this;
   }
-
-  setIsBest(isBest) {
-    const clause = `
-      ORDER BY (
-          SELECT
-            COUNT(*)
-          FROM
-            likes
-          WHERE
-            book_id = b.id
-        ) DESC, 
-        b.published_at DESC
-    `;
-
-    if (isBest) {
-      this.clauses.push(clause);
-    }
-
-    return this;
-  }
 };
