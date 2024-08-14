@@ -19,7 +19,7 @@ module.exports = class SelectBooksJoin {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN (
+      INNER JOIN (
         SELECT
           DISTINCT p.id,
           p.discount_rate,
