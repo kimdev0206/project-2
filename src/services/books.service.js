@@ -26,7 +26,7 @@ module.exports = class BooksService {
       if (isJoin) {
         var rows = await this.repository.selectBooksJoin(dao);
       } else if (row.counted === dto.limit) {
-        var rows = await this.repository.selectAuthorizedBooksJoin(dao);
+        var rows = await this.repository.selectBooksJoin(dao);
       } else {
         var rows = await this.repository.selectBooksSubQuery(dao);
       }

@@ -5,21 +5,7 @@ module.exports = class SelectBooksJoin {
   static async run(params) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
-      SELECT
-        b.id,
-        b.title,
-        b.id AS imgID,
-        b.summary,
-        b.author,
-        b.price,
-        likes,
-        CONVERT(ROUND(b.price - b.price *
-          MAX(ap.discount_rate)
-        ), SIGNED) AS discountedPrice,
-        MAX(ap.discount_rate) AS discountRate
-      FROM
-        books AS b
-      INNER JOIN (
+      WITH active_promotions AS (
         SELECT
           DISTINCT p.id,
           p.discount_rate,
@@ -37,7 +23,23 @@ module.exports = class SelectBooksJoin {
         WHERE
           p.start_at IS NULL
           OR NOW() BETWEEN p.start_at AND p.end_at
-      ) AS ap
+      )
+      SELECT
+        b.id,
+        b.title,
+        b.id AS imgID,
+        b.summary,
+        b.author,
+        b.price,
+        likes,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
+      FROM
+        books AS b
+      INNER JOIN
+        active_promotions AS ap
         ON b.category_id = ap.category_id
         OR ap.user_id = ?
     `;

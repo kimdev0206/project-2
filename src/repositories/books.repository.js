@@ -11,6 +11,20 @@ module.exports = class BooksRepository {
   async selectBooksJoin(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
+      WITH active_promotions AS (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          p.start_at IS NULL
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      )
       SELECT
         b.id,
         b.title,
@@ -25,21 +39,9 @@ module.exports = class BooksRepository {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      INNER JOIN (
-        SELECT
-          DISTINCT p.id,
-          p.discount_rate,
-          pc.category_id
-        FROM
-          promotions AS p
-        LEFT JOIN
-          promotion_categories AS pc
-          ON p.id = pc.promotion_id
-        WHERE
-          p.start_at IS NULL
-          OR NOW() BETWEEN p.start_at AND p.end_at
-      ) AS ap
-        ON b.category_id = ap.category_id        
+      INNER JOIN 
+        active_promotions AS ap
+        ON b.category_id = ap.category_id
     `;
 
     builder
@@ -68,45 +70,35 @@ module.exports = class BooksRepository {
         b.author,
         b.price,
         likes,
-        (
-          SELECT 
-            CONVERT(ROUND(b.price - b.price * sub.discountRate), SIGNED)
+        (  
+          SELECT
+            CONVERT(ROUND(b.price - b.price * MAX(p.discount_rate)), SIGNED)      
           FROM 
-            (
-              SELECT 
-                MAX(p.discount_rate) AS discountRate
-              FROM 
-                promotions AS p
-              LEFT JOIN 
-                promotion_users AS pu 
-                ON p.id = pu.promotion_id
-              LEFT JOIN 
-                promotion_categories AS pc 
-                ON p.id = pc.promotion_id
-              WHERE 
-                b.category_id = pc.category_id
-                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-            ) AS sub
+            promotions AS p
+          LEFT JOIN 
+            promotion_users AS pu 
+            ON p.id = pu.promotion_id
+          LEFT JOIN 
+            promotion_categories AS pc 
+            ON p.id = pc.promotion_id
+          WHERE 
+            b.category_id = pc.category_id
+            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
         ) AS discountedPrice,  
         (
           SELECT 
-            sub.discountRate
+            MAX(p.discount_rate)
           FROM 
-            (
-              SELECT 
-                MAX(p.discount_rate) AS discountRate
-              FROM 
-                promotions AS p
-              LEFT JOIN 
-                promotion_users AS pu 
-                ON p.id = pu.promotion_id                
-              LEFT JOIN 
-                promotion_categories AS pc 
-                ON p.id = pc.promotion_id
-              WHERE 
-                b.category_id = pc.category_id
-                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-            ) AS sub
+            promotions AS p
+          LEFT JOIN 
+            promotion_users AS pu 
+            ON p.id = pu.promotion_id
+          LEFT JOIN 
+            promotion_categories AS pc 
+            ON p.id = pc.promotion_id
+          WHERE 
+            b.category_id = pc.category_id
+            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
         ) AS discountRate
       FROM
         books AS b
@@ -129,21 +121,7 @@ module.exports = class BooksRepository {
   async selectAuthorizedBooksJoin(dao) {
     const builder = new SelectBooksQueryBuilder();
     const baseQuery = `
-      SELECT
-        b.id,
-        b.title,
-        b.id AS imgID,
-        b.summary,
-        b.author,
-        b.price,
-        likes,
-        CONVERT(ROUND(b.price - b.price *
-          MAX(ap.discount_rate)
-        ), SIGNED) AS discountedPrice,
-        MAX(ap.discount_rate) AS discountRate
-      FROM
-        books AS b
-      INNER JOIN (
+      WITH active_promotions AS (
         SELECT
           DISTINCT p.id,
           p.discount_rate,
@@ -161,7 +139,23 @@ module.exports = class BooksRepository {
         WHERE
           p.start_at IS NULL
           OR NOW() BETWEEN p.start_at AND p.end_at
-      ) AS ap
+      )
+      SELECT
+        b.id,
+        b.title,
+        b.id AS imgID,
+        b.summary,
+        b.author,
+        b.price,
+        likes,
+        CONVERT(ROUND(b.price - b.price *
+          MAX(ap.discount_rate)
+        ), SIGNED) AS discountedPrice,
+        MAX(ap.discount_rate) AS discountRate
+      FROM
+        books AS b
+      INNER JOIN 
+        active_promotions AS ap
         ON b.category_id = ap.category_id
         OR ap.user_id = ?
     `;
@@ -176,7 +170,7 @@ module.exports = class BooksRepository {
       .setPaging(dao)
       .build();
 
-    const { pool } = this.database;
+    const { pool } = this.database;    
     const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
@@ -192,47 +186,37 @@ module.exports = class BooksRepository {
         b.author,
         b.price,
         likes,
-        (
-          SELECT 
-            CONVERT(ROUND(b.price - b.price * sub.discountRate), SIGNED)
+        (  
+          SELECT
+            CONVERT(ROUND(b.price - b.price * MAX(p.discount_rate)), SIGNED)
           FROM 
-            (
-              SELECT 
-                MAX(p.discount_rate) AS discountRate
-              FROM 
-                promotions AS p
-              LEFT JOIN 
-                promotion_users AS pu 
-                ON p.id = pu.promotion_id 
-                AND pu.user_id = ?
-              LEFT JOIN 
-                promotion_categories AS pc 
-                ON p.id = pc.promotion_id
-              WHERE 
-                (b.category_id = pc.category_id OR pu.user_id = ?)
-                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-            ) AS sub
+            promotions AS p
+          LEFT JOIN 
+            promotion_users AS pu 
+            ON p.id = pu.promotion_id
+            AND pu.user_id = ?
+          LEFT JOIN 
+            promotion_categories AS pc 
+            ON p.id = pc.promotion_id
+          WHERE 
+            (b.category_id = pc.category_id OR pu.user_id = ?)
+            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
         ) AS discountedPrice,  
         (
           SELECT 
-            sub.discountRate
+            MAX(p.discount_rate)
           FROM 
-            (
-              SELECT 
-                MAX(p.discount_rate) AS discountRate
-              FROM 
-                promotions AS p
-              LEFT JOIN 
-                promotion_users AS pu 
-                ON p.id = pu.promotion_id 
-                AND pu.user_id = ?
-              LEFT JOIN 
-                promotion_categories AS pc 
-                ON p.id = pc.promotion_id
-              WHERE 
-                (b.category_id = pc.category_id OR pu.user_id = ?)
-                AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-            ) AS sub
+            promotions AS p
+          LEFT JOIN 
+            promotion_users AS pu 
+            ON p.id = pu.promotion_id
+            AND pu.user_id = ?
+          LEFT JOIN 
+            promotion_categories AS pc 
+            ON p.id = pc.promotion_id
+          WHERE 
+            (b.category_id = pc.category_id OR pu.user_id = ?)
+            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
         ) AS discountRate
       FROM
         books AS b
@@ -325,6 +309,25 @@ module.exports = class BooksRepository {
   async selectAuthorizedBook(dao) {
     const { pool } = this.database;
     const query = `
+      WITH active_promotions AS (
+        SELECT
+          DISTINCT p.id,
+          p.discount_rate,
+          pu.user_id,
+          pc.category_id
+        FROM
+          promotions AS p
+        LEFT JOIN
+          promotion_users AS pu
+          ON p.id = pu.promotion_id
+          AND pu.user_id = ?
+        LEFT JOIN
+          promotion_categories AS pc
+          ON p.id = pc.promotion_id
+        WHERE
+          p.start_at IS NULL
+          OR NOW() BETWEEN p.start_at AND p.end_at
+      )
       SELECT
         b.id,
         b.title,
@@ -358,25 +361,8 @@ module.exports = class BooksRepository {
         MAX(ap.discount_rate) AS discountRate
       FROM
         books AS b
-      LEFT JOIN (
-        SELECT
-          DISTINCT p.id,
-          p.discount_rate,
-          pu.user_id,
-          pc.category_id
-        FROM
-          promotions AS p
-        LEFT JOIN
-          promotion_users AS pu
-          ON p.id = pu.promotion_id
-          AND pu.user_id = ?
-        LEFT JOIN
-          promotion_categories AS pc
-          ON p.id = pc.promotion_id
-        WHERE
-          p.start_at IS NULL
-          OR NOW() BETWEEN p.start_at AND p.end_at
-      ) AS ap
+      LEFT JOIN 
+        active_promotions AS ap
         ON b.category_id = ap.category_id
         OR ap.user_id = ?
       WHERE
