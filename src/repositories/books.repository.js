@@ -70,38 +70,25 @@ module.exports = class BooksRepository {
         b.author,
         b.price,
         likes,
-        (  
-          SELECT
-            CONVERT(ROUND(b.price - b.price * MAX(p.discount_rate)), SIGNED)      
-          FROM 
-            promotions AS p
-          LEFT JOIN 
-            promotion_users AS pu 
-            ON p.id = pu.promotion_id
-          LEFT JOIN 
-            promotion_categories AS pc 
-            ON p.id = pc.promotion_id
-          WHERE 
-            b.category_id = pc.category_id
-            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-        ) AS discountedPrice,  
-        (
-          SELECT 
-            MAX(p.discount_rate)
-          FROM 
-            promotions AS p
-          LEFT JOIN 
-            promotion_users AS pu 
-            ON p.id = pu.promotion_id
-          LEFT JOIN 
-            promotion_categories AS pc 
-            ON p.id = pc.promotion_id
-          WHERE 
-            b.category_id = pc.category_id
-            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-        ) AS discountRate
+        CONVERT(ROUND(b.price - b.price * ap.discountRate), SIGNED) AS discountedPrice,
+        ap.discountRate
       FROM
         books AS b
+      INNER JOIN LATERAL (
+        SELECT 
+          MAX(p.discount_rate) AS discountRate
+        FROM 
+          promotions AS p
+        LEFT JOIN 
+          promotion_users AS pu 
+          ON p.id = pu.promotion_id
+        LEFT JOIN 
+          promotion_categories AS pc 
+          ON p.id = pc.promotion_id
+        WHERE 
+          b.category_id = pc.category_id
+          AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+      ) AS ap ON TRUE
     `;
 
     builder
@@ -170,7 +157,7 @@ module.exports = class BooksRepository {
       .setPaging(dao)
       .build();
 
-    const { pool } = this.database;    
+    const { pool } = this.database;
     const [result] = await pool.query(builder.query, builder.values);
     return result;
   }
@@ -186,44 +173,30 @@ module.exports = class BooksRepository {
         b.author,
         b.price,
         likes,
-        (  
-          SELECT
-            CONVERT(ROUND(b.price - b.price * MAX(p.discount_rate)), SIGNED)
-          FROM 
-            promotions AS p
-          LEFT JOIN 
-            promotion_users AS pu 
-            ON p.id = pu.promotion_id
-            AND pu.user_id = ?
-          LEFT JOIN 
-            promotion_categories AS pc 
-            ON p.id = pc.promotion_id
-          WHERE 
-            (b.category_id = pc.category_id OR pu.user_id = ?)
-            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-        ) AS discountedPrice,  
-        (
-          SELECT 
-            MAX(p.discount_rate)
-          FROM 
-            promotions AS p
-          LEFT JOIN 
-            promotion_users AS pu 
-            ON p.id = pu.promotion_id
-            AND pu.user_id = ?
-          LEFT JOIN 
-            promotion_categories AS pc 
-            ON p.id = pc.promotion_id
-          WHERE 
-            (b.category_id = pc.category_id OR pu.user_id = ?)
-            AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
-        ) AS discountRate
+        CONVERT(ROUND(b.price - b.price * ap.discountRate), SIGNED) AS discountedPrice,
+        ap.discountRate
       FROM
         books AS b
+      INNER JOIN LATERAL (
+        SELECT 
+          MAX(p.discount_rate) AS discountRate
+        FROM 
+          promotions AS p
+        LEFT JOIN 
+          promotion_users AS pu 
+          ON p.id = pu.promotion_id
+          AND pu.user_id = ?
+        LEFT JOIN 
+          promotion_categories AS pc 
+          ON p.id = pc.promotion_id
+        WHERE 
+          (b.category_id = pc.category_id OR pu.user_id = ?)
+          AND (p.start_at IS NULL OR NOW() BETWEEN p.start_at AND p.end_at)
+      ) AS ap ON TRUE
     `;
 
     builder
-      .setBaseQuery(baseQuery)([dao.userID, dao.userID, dao.userID, dao.userID])
+      .setBaseQuery(baseQuery)([dao.userID, dao.userID])
       .setCategoryID(dao.categoryID)
       .setIsNewPublished(dao.isNew)
       .setKeyword(dao)
